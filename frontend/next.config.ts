@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 
 const nextConfig: NextConfig = {
+  trailingSlash: true,
   output: isGithubActions ? 'export' : undefined,
   basePath: isGithubActions ? '/UniversityTeachingAssistent' : '',
   assetPrefix: isGithubActions ? '/UniversityTeachingAssistent/' : '',
