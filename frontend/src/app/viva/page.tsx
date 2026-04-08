@@ -36,10 +36,10 @@ export default function VivaPage() {
     if (!response.trim() || !vivaId) return;
     setLoading(true);
     try {
-      const res = await submitVivaResponse(parseInt(vivaId), {
+      const res = await submitVivaResponse({
+        viva_id: parseInt(vivaId),
         question_index: qIndex,
-        response_text: response,
-        original_answer: origAnswer,
+        response: response,
       });
       setResults(r => [...r, { ...res, question: questions[qIndex]?.question }]);
       if (res.viva_complete) {

@@ -42,7 +42,12 @@ export function useIntegrityTracker(student_id: string, assignment_id: number) {
     const toSend = [...eventBuffer.current];
     eventBuffer.current = [];   // clear immediately before await
     try {
-      await logEvents(toSend);
+      await logEvents({
+        student_id: student_id,
+        assignment_id: assignment_id,
+        session_id: sessionId.current,
+        events: toSend,
+      });
     } catch (e) {
       // put events back if send failed — don't lose data
       eventBuffer.current = [...toSend, ...eventBuffer.current];

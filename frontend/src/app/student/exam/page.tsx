@@ -21,7 +21,7 @@ interface GradeResult {
 }
 interface IntegrityResult {
   risk_level: string; risk_score: number; viva_triggered: boolean;
-  flags: string[]; viva_id?: number;
+  flags: { type: string; detail: string; severity: string }[]; viva_id?: number | null;
 }
 interface VivaQuestion { question: string; context?: string }
 
@@ -150,6 +150,7 @@ export default function StudentExamPage() {
             student_id: user.username,
             assignment_id: selectedAssignment.id,
             session_id: sessionId.current,
+            answer_text: answer,
           });
           setIntegrity(ir);
           if (ir.viva_triggered && ir.viva_id) {
@@ -340,7 +341,7 @@ export default function StudentExamPage() {
               </p>
               {integrity.flags?.length > 0 && (
                 <ul className="mt-1 text-xs text-gray-400 list-disc list-inside">
-                  {integrity.flags.map((f, i) => <li key={i}>{f}</li>)}
+                  {integrity.flags.map((f, i) => <li key={i}>{f.type}: {f.detail}</li>)}
                 </ul>
               )}
             </div>

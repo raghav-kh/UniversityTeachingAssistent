@@ -74,7 +74,7 @@ export default function DraftEditor({
       setLiveStats(s => ({ ...s, pastes: s.pastes + 1 }));
     },
     onFocus: (e: React.FocusEvent) => {
-      tracker.handlers.onFocus(e as any);
+      tracker.handlers.onFocus();
       setLiveStats(s => ({ ...s, focusLoss: s.focusLoss + 1 }));
     },
     onBlur: tracker.handlers.onBlur,

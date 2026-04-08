@@ -30,11 +30,19 @@ export function requireAuth(
 ): AuthUser {
   const user = getUser();
   if (!user) {
-    window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    } else {
+      return { id: 0, name: "SSR", username: "ssr", role: allowedRoles?.[0] || "student" } as AuthUser;
+    }
     throw new Error("Not authenticated");
   }
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    } else {
+      return user; // Just pass through on SSR
+    }
     throw new Error("Forbidden");
   }
   return user;
