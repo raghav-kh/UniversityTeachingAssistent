@@ -1,9 +1,29 @@
 [project]
 name = "eduai-backend"
 version = "0.1.0"
-requires-python = ">=3.11"
 description = "EduAI FastAPI backend for Vercel serverless"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "python-dotenv>=1.0.0",
+    "psycopg2-binary>=2.9.9",
+    "bcrypt>=4.0.0",
+    "pydantic>=2.0",
+    "pypdf>=5.0.0",
+    "requests>=2.31.0",
+    "openai>=1.0.0",
+    "Pillow>=10.0.0",
+    "pytesseract>=0.3.10",
+    "neo4j>=5.0",
+    "python-multipart>=0.0.9",
+    "PyJWT>=2.8.0",
+    "cryptography"
+]
 
-# Tells Vercel where the FastAPI `app` lives (main.py is not a default filename).
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project.scripts]
 app = "main:app"
