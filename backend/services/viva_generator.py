@@ -1,25 +1,16 @@
-import os
 import re
 import json
 import logging
 from typing import List, Dict, Any, Optional
 
-import requests
 from dotenv import load_dotenv
+
+from services.cloud_llm import complete_text
 
 load_dotenv()
 
-OLLAMA_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Validate minimal config
-if not OLLAMA_URL:
-    logger.warning("OLLAMA_BASE_URL not set; using default localhost URL.")
-if not OLLAMA_MODEL:
-    logger.warning("OLLAMA_MODEL not set; using default model.")
 
 
 def _safe_json_extract(raw: str) -> Optional[Any]:
@@ -46,34 +37,9 @@ def _safe_json_extract(raw: str) -> Optional[Any]:
     return None
 
 
-def _post_to_ollama(prompt: str, num_predict: int = 200, timeout: int = 120) -> str:
-    """
-    Post a prompt to Ollama and return the raw response string.
-    Raises Exception on failure.
-    """
-    payload = {
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "options": {
-            "temperature": 0.3,
-            "num_predict": num_predict,
-            "num_ctx": 1024,
-        },
-    }
-    try:
-        resp = requests.post(f"{OLLAMA_URL}/api/generate", json=payload, timeout=timeout)
-        resp.raise_for_status()
-        data = resp.json()
-        # Ollama responses often include a "response" field
-        return data.get("response", "") if isinstance(data, dict) else ""
-    except requests.exceptions.Timeout:
-        raise Exception("Ollama request timed out")
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Ollama request failed: {e}")
-    except ValueError:
-        # JSON decode error
-        raise Exception("Invalid JSON response from Ollama")
+def _llm_generate(prompt: str, num_predict: int = 200) -> str:
+    """OpenAI or Ollama via cloud_llm (Vercel-safe when OPENAI_API_KEY is set)."""
+    return complete_text(prompt, max_tokens=num_predict, temperature=0.3)
 
 
 def generate_viva_questions(
@@ -109,7 +75,7 @@ def generate_viva_questions(
     )
 
     try:
-        raw = _post_to_ollama(prompt, num_predict=400, timeout=120)
+        raw = _llm_generate(prompt, num_predict=400)
         parsed = _safe_json_extract(raw)
         if isinstance(parsed, list):
             # Normalize and limit number of questions
@@ -174,7 +140,7 @@ def evaluate_viva_response(
     )
 
     try:
-        raw = _post_to_ollama(prompt, num_predict=150, timeout=90)
+        raw = _llm_generate(prompt, num_predict=150)
         parsed = _safe_json_extract(raw)
         if isinstance(parsed, dict):
             # Normalize values

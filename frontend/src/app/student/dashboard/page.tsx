@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import axios from "axios";
 
@@ -62,7 +63,7 @@ export default function StudentDashboard() {
       ) : grades.length === 0 ? (
         <p className="text-gray-500 text-sm">
           No submissions yet.{" "}
-          <a href="/student/exam" className="text-indigo-400 hover:underline">Take an exam →</a>
+          <Link href="/student/exam" className="text-indigo-400 hover:underline">Take an exam →</Link>
         </p>
       ) : (
         <div className="space-y-3">

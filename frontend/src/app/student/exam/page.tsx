@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { requireAuth } from "@/lib/auth";
 import {
+  getApiBaseURL,
   getAssignments,
   submitAnswer,
   analyzeIntegrity,
@@ -155,7 +156,9 @@ export default function StudentExamPage() {
           setIntegrity(ir);
           if (ir.viva_triggered && ir.viva_id) {
             // Fetch viva questions
-            const vivaData = await fetch(`/integrity/viva/${ir.viva_id}`).then((r) => r.json());
+            const vivaData = await fetch(
+              `${getApiBaseURL()}/integrity/viva/${ir.viva_id}`
+            ).then((r) => r.json());
             setVivaQuestions(vivaData.questions ?? []);
             setVivaId(ir.viva_id);
             setPhase("viva_active");
@@ -172,14 +175,16 @@ export default function StudentExamPage() {
   async function handleVivaSubmit() {
     if (!vivaId || !vivaInput.trim()) return;
     setVivaSubmitting(true);
-    const updatedResponses = [...vivaResponses, vivaInput.trim()];
+    const responseText = vivaInput.trim();
+    const updatedResponses = [...vivaResponses, responseText];
     setVivaResponses(updatedResponses);
     setVivaInput("");
     try {
       await submitVivaResponse({
         viva_id: vivaId,
         question_index: vivaIdx,
-        response: vivaInput.trim(),
+        response: responseText,
+        original_answer: answer,
       });
     } catch { /* non-fatal */ }
     if (vivaIdx + 1 >= vivaQuestions.length) {

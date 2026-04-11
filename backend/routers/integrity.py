@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from db import get_connection
@@ -42,7 +42,7 @@ class AnalyzeRequest(BaseModel):
 class VivaResponse(BaseModel):
     question_index: int
     response_text: str
-    original_answer: str
+    original_answer: str = ""
 
 
 # -------------------------

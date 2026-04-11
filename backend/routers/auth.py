@@ -1,6 +1,10 @@
+import os
+import time
+
+import bcrypt
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import bcrypt
+
 from db import get_connection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -43,12 +47,23 @@ def login(req: LoginRequest):
         )
         if not password_matches:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        return {
+        out = {
             "id": row["id"],
             "name": row["name"],
             "username": row["username"],
             "role": row["role"],
         }
+        secret = os.getenv("JWT_SECRET", "").strip()
+        if secret:
+            import jwt
+
+            exp = int(time.time()) + int(os.getenv("JWT_EXPIRE_SECONDS", "604800"))
+            out["access_token"] = jwt.encode(
+                {"sub": str(row["id"]), "role": row["role"], "username": row["username"], "exp": exp},
+                secret,
+                algorithm="HS256",
+            )
+        return out
     except HTTPException:
         raise
     except Exception as exc:

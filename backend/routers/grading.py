@@ -1,12 +1,14 @@
+import io
 import json
 import logging
+import os
+import shutil
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
-from pydantic import BaseModel
-from PIL import Image
+
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-import io
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, status
+from PIL import Image
+from pydantic import BaseModel
 
 from db import get_connection
 from services.llm_router import route_and_grade, CONFIDENCE_THRESHOLD
@@ -15,6 +17,12 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(prefix="/grading", tags=["Grading"])
+
+
+def _tesseract_executable() -> Optional[str]:
+    return os.getenv("TESSERACT_CMD") or shutil.which("tesseract")
+
+
 @router.post("/submit-scan")
 def submit_scan(
     assignment_id: int = Form(...),
@@ -23,11 +31,17 @@ def submit_scan(
     image: UploadFile = File(...),
 ):
     """OCR an uploaded handwritten image, then run through grading pipeline."""
-    import io as _io
+    tess = _tesseract_executable()
+    if not tess:
+        raise HTTPException(
+            status_code=503,
+            detail="OCR is not configured (set TESSERACT_CMD or install tesseract). On Vercel use a hosted OCR API or skip scan uploads.",
+        )
+    pytesseract.pytesseract.tesseract_cmd = tess
 
     # 1. Read image bytes synchronously
     contents = image.file.read()
-    pil_image = Image.open(_io.BytesIO(contents))
+    pil_image = Image.open(io.BytesIO(contents))
 
     # 2. OCR
     try:

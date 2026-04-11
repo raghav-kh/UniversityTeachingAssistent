@@ -1,15 +1,73 @@
 import axios from "axios";
 
+/** Set in CI / Vercel / GitHub Actions when the API is hosted separately (e.g. Vercel Python backend). */
+export function getApiBaseURL(): string {
+  const u = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (u) return u.replace(/\/$/, "");
+  return "";
+}
 
+function shouldUseGithubPagesDemoMock(): boolean {
+  if (typeof window === "undefined") return false;
+  if (!window.location.hostname.includes("github.io")) return false;
+  if (getApiBaseURL()) return false;
+  return true;
+}
 
 const api = axios.create({
-  baseURL: "",   // empty = same origin (localhost:3000, proxied to 8000)
+  baseURL: getApiBaseURL(),
   headers: { "Content-Type": "application/json" },
 });
 
+// Mock interceptor for GitHub Pages portfolio showcasing without a backend
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (shouldUseGithubPagesDemoMock()) {
+      const url = error.config.url || "";
+      console.log("Mocking API response for:", url);
+      
+      if (url.includes("/grading/stats")) {
+        return Promise.resolve({ data: { total_grades: 124, tier1_count: 80, tier2_count: 44, tier1_pct: 65, tier2_pct: 35, flagged_count: 8, flagged_pct: 6, avg_confidence: 92, confidence_distribution: {high: 85, medium: 35, low: 4}, model_usage: [{model_used: "gpt-4", count: 44}], reviewed_by_prof: 12, cost_estimate: {tier2_spent_inr: 500, saved_by_tier1_inr: 1200, total_if_all_t2_inr: 1700} } });
+      }
+      if (url.includes("/students/status")) {
+        return Promise.resolve({ data: [
+          { student_id: "S101", student_name: "Alice Johnson", total_submissions: 5, avg_score: 85, high_risk_count: 0, reviewed_count: 2 },
+          { student_id: "S102", student_name: "Bob Smith", total_submissions: 3, avg_score: 45, high_risk_count: 2, reviewed_count: 1 }
+        ]});
+      }
+      if (url.includes("/grading/review-queue") || url.includes("/grading/review")) {
+        return Promise.resolve({ data: { queue: [{ queue_id: 1, student_id: "S102", student_name: "Bob Smith", assignment_title: "CS101 Midterm", score: 45, max_score: 100, reason: "Flagged by integrity module" }] } });
+      }
+      if (url.includes("/grading/student/")) {
+        return Promise.resolve({ data: { grades: [{ submission_id: 1, assignment_title: "Week 1 Quiz", score: 90, max_score: 100, feedback: "Great work!", flagged: false, graded_at: new Date().toISOString() }] } });
+      }
+      if (url.includes("/integrity/reports")) {
+        return Promise.resolve({ data: { reports: [{ student_id: "S102", risk_score: 85, risk_level: "high", flags: [{type: "paste", detail: "large text block pasted"}] }] } });
+      }
+      
+      // Fallback empty data for lists, true for actions
+      if (error.config.method === "get") return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: { success: true } });
+    }
+    return Promise.reject(error);
+  }
+);
+
 export async function loginUser(username: string, password: string) {
-  const res = await axios.post("/auth/login", { username, password });
-  return res.data;
+  try {
+    const res = await api.post("/auth/login", { username, password });
+    return res.data;
+  } catch (error) {
+    // Fallback for GitHub Pages demo where backend is unavailable
+    if (shouldUseGithubPagesDemoMock()) {
+      if (username === "admin" && password === "admin123") return { id: 1, name: "Admin User", username: "admin", role: "admin" };
+      if (username === "teacher1" && password === "teach123") return { id: 2, name: "Teacher One", username: "teacher1", role: "teacher" };
+      if (username === "student1" && password === "student123") return { id: 3, name: "Student One", username: "student1", role: "student" };
+      throw new Error("Invalid demo credentials");
+    }
+    throw error;
+  }
 }
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -164,7 +222,7 @@ export const uploadDocument = async (
   // real progress would need SSE or websockets — this is good enough for demo
   onProgress?.("Uploading", 10);
 
-  const res = await axios.post("/rag/upload", formData, {
+  const res = await axios.post(`${getApiBaseURL()}/rag/upload`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
     onUploadProgress: (evt) => {
       if (evt.total) {
@@ -274,13 +332,20 @@ export function clearUser() {
   localStorage.removeItem(KEY);
 }
 
+const getBasePath = () => {
+  if (typeof window !== "undefined" && window.location.pathname.startsWith('/UniversityTeachingAssistent')) {
+    return '/UniversityTeachingAssistent';
+  }
+  return '';
+};
+
 export function requireAuth(
   allowedRoles?: Array<"admin" | "teacher" | "student">
 ): AuthUser {
   const user = getUser();
   if (!user) {
     if (typeof window !== "undefined") {
-      window.location.href = "/login";
+      window.location.href = `${getBasePath()}/login`;
     } else {
       return { id: 0, name: "SSR", username: "ssr", role: allowedRoles?.[0] || "student" } as AuthUser;
     }
@@ -288,7 +353,7 @@ export function requireAuth(
   }
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     if (typeof window !== "undefined") {
-      window.location.href = "/login";
+      window.location.href = `${getBasePath()}/login`;
     } else {
       return user; // Just pass through on SSR
     }
@@ -302,10 +367,12 @@ export async function submitVivaResponse(data: {
   viva_id: number;
   question_index: number;
   response: string;
+  original_answer?: string;
 }) {
-  const res = await axios.post(`/integrity/viva/${data.viva_id}/respond`, {
+  const res = await api.post(`/integrity/viva/${data.viva_id}/respond`, {
     question_index: data.question_index,
-    response: data.response,
+    response_text: data.response,
+    original_answer: data.original_answer ?? "",
   });
   return res.data;
 }
@@ -348,7 +415,7 @@ export async function getStudentsStatus() {
 }
 
 export async function submitScan(formData: FormData) {
-  const res = await axios.post("/grading/submit-scan", formData, {
+  const res = await axios.post(`${getApiBaseURL()}/grading/submit-scan`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;

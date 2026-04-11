@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
+const apiProxy = process.env.API_PROXY_TARGET || "http://127.0.0.1:8000";
 
 const nextConfig: NextConfig = {
   trailingSlash: true,
@@ -15,43 +16,51 @@ const nextConfig: NextConfig = {
       return [
         {
           source: "/auth/:path*",
-          destination: "http://127.0.0.1:8000/auth/:path*",
+          destination: `${apiProxy}/auth/:path*`,
         },
         {
           source: "/courses/:path*",
-          destination: "http://127.0.0.1:8000/courses/:path*",
+          destination: `${apiProxy}/courses/:path*`,
         },
         {
           source: "/courses",
-          destination: "http://127.0.0.1:8000/courses",
+          destination: `${apiProxy}/courses`,
         },
         {
           source: "/assignments/:path*",
-          destination: "http://127.0.0.1:8000/assignments/:path*",
+          destination: `${apiProxy}/assignments/:path*`,
         },
         {
           source: "/assignments",
-          destination: "http://127.0.0.1:8000/assignments",
+          destination: `${apiProxy}/assignments`,
         },
         {
           source: "/students/status",
-          destination: "http://127.0.0.1:8000/students/status",
+          destination: `${apiProxy}/students/status`,
         },
         {
           source: "/rag/:path*",
-          destination: "http://127.0.0.1:8000/rag/:path*",
+          destination: `${apiProxy}/rag/:path*`,
         },
         {
           source: "/grading/:path*",
-          destination: "http://127.0.0.1:8000/grading/:path*",
+          destination: `${apiProxy}/grading/:path*`,
         },
         {
           source: "/graph/:path*",
-          destination: "http://127.0.0.1:8000/graph/:path*",
+          destination: `${apiProxy}/graph/:path*`,
         },
         {
           source: "/integrity/:path*",
-          destination: "http://127.0.0.1:8000/integrity/:path*",
+          destination: `${apiProxy}/integrity/:path*`,
+        },
+        {
+          source: "/webhooks/:path*",
+          destination: `${apiProxy}/webhooks/:path*`,
+        },
+        {
+          source: "/health",
+          destination: `${apiProxy}/health`,
         },
       ];
     },

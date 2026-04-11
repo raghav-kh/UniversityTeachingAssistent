@@ -124,6 +124,9 @@ def get_embedding(text: str) -> List[float]:
         raise EmbeddingError("Text must be a non-empty string")
 
     provider = EMBEDDING_PROVIDER
+    # Serverless hosts cannot reach a laptop Ollama; prefer OpenAI when deployed on Vercel.
+    if os.getenv("VERCEL") == "1" and provider == "ollama" and os.getenv("OPENAI_API_KEY"):
+        provider = "openai"
     logger.debug("Generating embedding using provider %s", provider)
 
     if provider == "ollama":

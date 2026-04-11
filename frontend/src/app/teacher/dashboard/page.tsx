@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import { getStudentsStatus, getReviewQueue } from "@/lib/api";
 import StatCard from "@/components/ui/StatCard";
@@ -101,9 +102,9 @@ export default function TeacherDashboard() {
           <p className="text-yellow-400 font-semibold">
             ⚠️ {queue.length} submission{queue.length !== 1 ? "s" : ""} pending review
           </p>
-          <a href="/teacher/review" className="text-sm text-indigo-400 hover:underline mt-1 block">
+          <Link href="/teacher/review" className="text-sm text-indigo-400 hover:underline mt-1 block">
             Go to Review Queue →
-          </a>
+          </Link>
         </div>
       )}
     </div>

@@ -1,9 +1,10 @@
 import os
 import re
 import json
-import requests
 import logging
 from dotenv import load_dotenv
+
+from services.cloud_llm import complete_text, active_provider
 
 load_dotenv()
 
@@ -52,18 +53,25 @@ def route_and_grade(task_type, question, student_answer, correct_answer, rubric,
 # ──────────────────────────────────────────────────────────────────
 # TIER 1 — objective questions
 # ──────────────────────────────────────────────────────────────────
+def _grading_model_used(tier: int) -> str:
+    if active_provider() == "openai":
+        base = os.getenv("OPENAI_GRADING_MODEL", os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini"))
+        return f"{base}-tier{tier}" if tier == 2 else base
+    return OLLAMA_MODEL if tier == 1 else f"{OLLAMA_MODEL}-tier2"
+
+
 def grade_with_tier1(task_type, question, student_answer, correct_answer, rubric, max_marks) -> dict:
     prompt = build_grading_prompt(task_type, question, student_answer, correct_answer, rubric, max_marks, strict=True)
-    raw = call_ollama(prompt, max_tokens=300)
-    return parse_grading_response(raw, model_name=OLLAMA_MODEL, tier=1, max_marks=max_marks)
+    raw = complete_text(prompt, max_tokens=300)
+    return parse_grading_response(raw, model_name=_grading_model_used(1), tier=1, max_marks=max_marks)
 
 # ──────────────────────────────────────────────────────────────────
 # TIER 2 — complex reasoning
 # ──────────────────────────────────────────────────────────────────
 def grade_with_tier2(task_type, question, student_answer, correct_answer, rubric, max_marks) -> dict:
     prompt = build_grading_prompt(task_type, question, student_answer, correct_answer, rubric, max_marks, strict=False)
-    raw = call_ollama(prompt, max_tokens=500)
-    return parse_grading_response(raw, model_name=f"{OLLAMA_MODEL}-tier2", tier=2, max_marks=max_marks)
+    raw = complete_text(prompt, max_tokens=500)
+    return parse_grading_response(raw, model_name=_grading_model_used(2), tier=2, max_marks=max_marks)
 
 # ──────────────────────────────────────────────────────────────────
 # PROMPT BUILDER
@@ -96,33 +104,6 @@ MAX MARKS: {max_marks}
 "matched_concepts":[],
 "missing_concepts":[],
 "rubric_breakdown":{{"accuracy":<0-40>,"depth":<0-30>,"clarity":<0-30>}}}}"""
-
-# ──────────────────────────────────────────────────────────────────
-# OLLAMA CALLER
-# ──────────────────────────────────────────────────────────────────
-def call_ollama(prompt: str, max_tokens: int = 300) -> str:
-    try:
-        response = requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "temperature": 0.1,
-                    "num_predict": max_tokens,
-                    "num_ctx": 1024,
-                    "num_thread": 4,
-                }
-            },
-            timeout=180
-        )
-        response.raise_for_status()
-        return response.json().get("response", "")
-    except requests.exceptions.Timeout:
-        raise Exception("Ollama timed out during grading")
-    except Exception as e:
-        raise Exception(f"Ollama call failed: {str(e)}")
 
 # ──────────────────────────────────────────────────────────────────
 # RESPONSE PARSER
