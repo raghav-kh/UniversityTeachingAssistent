@@ -18,15 +18,17 @@ dependencies = [
     "neo4j>=5.0",
     "python-multipart>=0.0.9",
     "PyJWT>=2.8.0",
-    "cryptography"
+    "cryptography",
 ]
 
+# This maps the "app" command to the "app" variable in "main.py"
+[project.scripts]
+app = "main:app"
+
+# This prevents the "Multiple top-level packages" error
 [tool.uv]
-packages = false                   # List your top-level python files
+package = false
 
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[project.scripts]
-app = "main:app"
