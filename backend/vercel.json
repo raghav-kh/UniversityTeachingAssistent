@@ -5,6 +5,8 @@
       "use": "@vercel/python"
     }
   ],
+  "$schema": "https://vercel.com/schema.json",
+  "regions": ["iad1"],
   "routes": [
     {
       "src": "/(.*)",
