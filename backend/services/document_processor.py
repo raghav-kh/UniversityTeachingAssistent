@@ -1,9 +1,9 @@
+import io
 import re
 import logging
 from typing import Generator, Dict, Any, List, Optional
 
-# PyMuPDF import; keep at module level so import error surfaces early
-import fitz  # pip install PyMuPDF
+from pypdf import PdfReader
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -29,18 +29,17 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
         raise ValueError("Empty file bytes provided")
 
     try:
-        # Use context manager to ensure doc is closed on exceptions
-        with fitz.open(stream=file_bytes, filetype="pdf") as doc:
-            pages: List[str] = []
-            for page_num, page in enumerate(doc):
-                try:
-                    text = page.get_text()
-                except Exception as e:
-                    logger.debug("Failed to extract text from page %s: %s", page_num + 1, e)
-                    text = ""
-                text = clean_text(text)
-                pages.append(f"[PAGE {page_num + 1}]\n{text}")
-            return "\n\n".join(pages).strip()
+        reader = PdfReader(io.BytesIO(file_bytes))
+        pages: List[str] = []
+        for page_num, page in enumerate(reader.pages):
+            try:
+                raw = page.extract_text() or ""
+            except Exception as e:
+                logger.debug("Failed to extract text from page %s: %s", page_num + 1, e)
+                raw = ""
+            text = clean_text(raw)
+            pages.append(f"[PAGE {page_num + 1}]\n{text}")
+        return "\n\n".join(pages).strip()
     except Exception as exc:
         logger.exception("Failed to open PDF from bytes")
         raise ValueError("Invalid PDF data or unable to parse PDF") from exc

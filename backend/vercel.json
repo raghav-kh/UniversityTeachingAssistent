@@ -1,10 +1,4 @@
 {
   "$schema": "https://vercel.com/schema.json",
-  "regions": ["iad1"],
-  "functions": {
-    "index.py": {
-      "maxDuration": 60,
-      "memory": 1024
-    }
-  }
+  "regions": ["iad1"]
 }

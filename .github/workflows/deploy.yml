@@ -20,6 +20,10 @@ jobs:
     env:
       GITHUB_ACTIONS: true
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # Set these under Repo → Settings → Secrets and variables → Actions → Variables
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
     defaults:
       run:
         working-directory: ./frontend
@@ -38,6 +42,9 @@ jobs:
           static_site_generator: next
       - name: Install dependencies
         run: npm ci
+      # Next.js static export (output: 'export') does not support middleware.
+      - name: Disable middleware for static export
+        run: rm -f src/middleware.ts
       - name: Build with Next.js
         run: npm run build
       - name: Upload artifact
