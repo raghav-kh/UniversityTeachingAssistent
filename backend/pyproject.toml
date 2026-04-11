@@ -21,9 +21,8 @@ dependencies = [
     "cryptography"
 ]
 
-[tool.setuptools]
-packages = ["routers", "services", "db"] # List every folder that contains an __init__.py
-py-modules = ["main"]                    # List your top-level python files
+[tool.uv]
+packages = false                   # List your top-level python files
 
 [build-system]
 requires = ["setuptools", "wheel"]
