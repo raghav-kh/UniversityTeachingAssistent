@@ -16,13 +16,14 @@ load_dotenv()
 
 def _cors_origins() -> list:
     raw = os.getenv("CORS_ORIGINS", "").strip()
-    if raw:
-        return [o.strip() for o in raw.split(",") if o.strip()]
-    # Local dev defaults
-    return [
+    origins = [o.strip() for o in raw.split(",") if o.strip()] if raw else []
+    
+    # Add your GitHub Pages URL here
+    origins.extend([
         "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
+        "https://raghav-kh.github.io", # Replace with your actual GitHub username/repo
+    ])
+    return origins
 
 
 @asynccontextmanager
