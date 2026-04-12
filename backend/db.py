@@ -47,11 +47,18 @@ def _ensure_ssl_query(dsn: str) -> str:
     if not needs_ssl:
         return dsn
     q = parse_qs(parsed.query)
+    
+    # Remove unsupported query parameters for psycopg2 (like Supabase telemetry)
+    unsupported_keys = {"supa", "pgbouncer", "pooler"}
+    for key in list(q.keys()):
+        if key.lower() in unsupported_keys:
+            del q[key]
+            
     if not any(k.lower() == "sslmode" for k in q):
         q["sslmode"] = ["require"]
-        new_query = urlencode(q, doseq=True)
-        return urlunparse(parsed._replace(query=new_query))
-    return dsn
+        
+    new_query = urlencode(q, doseq=True)
+    return urlunparse(parsed._replace(query=new_query))
 
 
 def get_connection():
