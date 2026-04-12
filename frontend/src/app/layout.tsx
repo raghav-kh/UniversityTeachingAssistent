@@ -10,12 +10,18 @@ const PUBLIC_ROUTES = ["/login"];
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isPublic = PUBLIC_ROUTES.includes(pathname);
+  // Strip trailing slash for public route check (except for root '/')
+  const normalizedPath = pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -1) : pathname;
+  const isPublic = PUBLIC_ROUTES.includes(normalizedPath);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    const user = getUser();
+    if (!user && !isPublic) {
+      router.push('/login');
+    }
+  }, [pathname, isPublic, router]);
 
   if (!mounted || isPublic) {
     return (
@@ -29,10 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const user = getUser();
   if (!user) {
-    if (typeof window !== "undefined") {
-      const basePath = window.location.pathname.startsWith('/UniversityTeachingAssistent') ? '/UniversityTeachingAssistent' : '';
-      window.location.href = `${basePath}/login`;
-    }
+    // We already initiated router.push in useEffect above, 
+    // just render an empty skeleton while redirecting to avoid flashing content.
     return (
       <html lang="en">
         <body className="bg-gray-950 text-white" suppressHydrationWarning />
