@@ -41,9 +41,21 @@ def _ensure_ssl_query(dsn: str) -> str:
     port = parsed.port
 
     # Auto-fix Supabase Pooler missing tenant ID (Tenant or user not found)
-    if "pooler.supabase.com" in host and port == 6543 and "." not in username:
-        # Fall back to direct connection (port 5432) to bypass Supavisor tenant requirements
-        new_netloc = f"{username}:{parsed.password}@{host}:5432"
+    if "pooler.supabase.com" in host and "." not in username:
+        import re
+        project_ref = "snldgdkhfuomjrjbpcer" # Fallback from .env
+        
+        # Try to extract project ref from direct URL if present in env
+        for key in ["POSTGRES_URL", "DATABASE_URL"]:
+            val = os.getenv(key, "")
+            if "db." in val and ".supabase.co" in val:
+                m = re.search(r"db\.([a-z0-9]+)\.supabase\.co", val)
+                if m:
+                    project_ref = m.group(1)
+                    break
+                    
+        new_username = f"{username}.{project_ref}"
+        new_netloc = f"{new_username}:{parsed.password}@{host}:{port}"
         parsed = parsed._replace(netloc=new_netloc)
         
     if host in ("localhost", "127.0.0.1", "::1"):
