@@ -35,9 +35,20 @@ def _ensure_ssl_query(dsn: str) -> str:
     parsed = urlparse(dsn)
     if parsed.scheme not in ("postgres", "postgresql"):
         return dsn
+        
+    username = parsed.username or ""
     host = (parsed.hostname or "").lower()
+    port = parsed.port
+
+    # Auto-fix Supabase Pooler missing tenant ID (Tenant or user not found)
+    if "pooler.supabase.com" in host and port == 6543 and "." not in username:
+        # Fall back to direct connection (port 5432) to bypass Supavisor tenant requirements
+        new_netloc = f"{username}:{parsed.password}@{host}:5432"
+        parsed = parsed._replace(netloc=new_netloc)
+        
     if host in ("localhost", "127.0.0.1", "::1"):
         return dsn
+        
     needs_ssl = (
         os.getenv("FORCE_PG_SSL", "").lower() in ("1", "true", "yes")
         or os.getenv("VERCEL") == "1"
@@ -45,7 +56,7 @@ def _ensure_ssl_query(dsn: str) -> str:
         or "supabase.co" in host
     )
     if not needs_ssl:
-        return dsn
+        return urlunparse(parsed)
     q = parse_qs(parsed.query)
     
     # Remove unsupported query parameters for psycopg2 (like Supabase telemetry)
