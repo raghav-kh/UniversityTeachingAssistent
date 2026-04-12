@@ -3,7 +3,10 @@ import axios from "axios";
 /** Set in CI / Vercel / GitHub Actions when the API is hosted separately (e.g. Vercel Python backend). */
 export function getApiBaseURL(): string {
   const u = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (u) return u.replace(/\/$/, "");
+  if (u) {
+    const cleanUrl = u.replace(/\/$/, "");
+    return cleanUrl.startsWith("http") ? cleanUrl : `https://${cleanUrl}`;
+  }
   return "";
 }
 
