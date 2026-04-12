@@ -1,6 +1,6 @@
 "use client";
 import "./globals.css";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "@/components/ui/Sidebar";
 import { getUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ const PUBLIC_ROUTES = ["/login"];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isPublic = PUBLIC_ROUTES.includes(pathname);
   const [mounted, setMounted] = useState(false);
 
@@ -28,7 +29,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const user = getUser();
   if (!user) {
-    if (typeof window !== "undefined") window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      const basePath = window.location.pathname.startsWith('/UniversityTeachingAssistent') ? '/UniversityTeachingAssistent' : '';
+      window.location.href = `${basePath}/login`;
+    }
     return (
       <html lang="en">
         <body className="bg-gray-950 text-white" suppressHydrationWarning />
