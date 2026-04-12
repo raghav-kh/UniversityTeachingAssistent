@@ -45,6 +45,11 @@ api.interceptors.response.use(
       if (url.includes("/integrity/reports")) {
         return Promise.resolve({ data: { reports: [{ student_id: "S102", risk_score: 85, risk_level: "high", flags: [{type: "paste", detail: "large text block pasted"}] }] } });
       }
+
+      // Do not auto-resolve auth endpoints to let the specific catch block in loginUser handle it!
+      if (url.includes("/auth/login")) {
+        return Promise.reject(error);
+      }
       
       // Fallback empty data for lists, true for actions
       if (error.config.method === "get") return Promise.resolve({ data: [] });
