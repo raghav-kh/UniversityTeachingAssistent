@@ -1,28 +1,9 @@
 import axios from "axios";
 
-// ── Constants ──────────────────────────────────────────────────────
-export const SUPABASE_URL = "https://snldgdkhfuomjrjbpcer.supabase.co";
-export const VERCEL_API_URL = "https://try4-psi.vercel.app";
 
-/** Set in CI / Vercel / GitHub Actions when the API is hosted separately (e.g. Vercel Python backend). */
-export function getApiBaseURL(): string {
-  const u = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (u) {
-    const cleanUrl = u.replace(/\/$/, "");
-    return cleanUrl.startsWith("http") ? cleanUrl : `https://${cleanUrl}`;
-  }
-  // Default to the Vercel backend
-  return VERCEL_API_URL;
-}
-
-function shouldUseGithubPagesDemoMock(): boolean {
-  if (typeof window === "undefined") return false;
-  if (!window.location.hostname.includes("github.io")) return false;
-  return false; // We now have a real backend — disable mock
-}
 
 const api = axios.create({
-  baseURL: getApiBaseURL(),
+  baseURL: "",   // empty = same origin (localhost:3000, proxied to 8000)
   headers: { "Content-Type": "application/json" },
 });
 
@@ -30,108 +11,29 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (shouldUseGithubPagesDemoMock()) {
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
       const url = error.config.url || "";
       console.log("Mocking API response for:", url);
-
+      
       if (url.includes("/grading/stats")) {
-        return Promise.resolve({
-          data: {
-            total_grades: 124,
-            tier1_count: 80,
-            tier2_count: 44,
-            tier1_pct: 65,
-            tier2_pct: 35,
-            flagged_count: 8,
-            flagged_pct: 6,
-            avg_confidence: 92,
-            confidence_distribution: { high: 85, medium: 35, low: 4 },
-            model_usage: [{ model_used: "gpt-4", count: 44 }],
-            reviewed_by_prof: 12,
-            cost_estimate: {
-              tier2_spent_inr: 500,
-              saved_by_tier1_inr: 1200,
-              total_if_all_t2_inr: 1700,
-            },
-          },
-        });
+        return Promise.resolve({ data: { total_grades: 124, tier1_count: 80, tier2_count: 44, tier1_pct: 65, tier2_pct: 35, flagged_count: 8, flagged_pct: 6, avg_confidence: 92, confidence_distribution: {high: 85, medium: 35, low: 4}, model_usage: [{model_used: "gpt-4", count: 44}], reviewed_by_prof: 12, cost_estimate: {tier2_spent_inr: 500, saved_by_tier1_inr: 1200, total_if_all_t2_inr: 1700} } });
       }
       if (url.includes("/students/status")) {
-        return Promise.resolve({
-          data: [
-            {
-              student_id: "S101",
-              student_name: "Alice Johnson",
-              total_submissions: 5,
-              avg_score: 85,
-              high_risk_count: 0,
-              reviewed_count: 2,
-            },
-            {
-              student_id: "S102",
-              student_name: "Bob Smith",
-              total_submissions: 3,
-              avg_score: 45,
-              high_risk_count: 2,
-              reviewed_count: 1,
-            },
-          ],
-        });
+        return Promise.resolve({ data: [
+          { student_id: "S101", student_name: "Alice Johnson", total_submissions: 5, avg_score: 85, high_risk_count: 0, reviewed_count: 2 },
+          { student_id: "S102", student_name: "Bob Smith", total_submissions: 3, avg_score: 45, high_risk_count: 2, reviewed_count: 1 }
+        ]});
       }
       if (url.includes("/grading/review-queue") || url.includes("/grading/review")) {
-        return Promise.resolve({
-          data: {
-            queue: [
-              {
-                queue_id: 1,
-                student_id: "S102",
-                student_name: "Bob Smith",
-                assignment_title: "CS101 Midterm",
-                score: 45,
-                max_score: 100,
-                reason: "Flagged by integrity module",
-              },
-            ],
-          },
-        });
+        return Promise.resolve({ data: { queue: [{ queue_id: 1, student_id: "S102", student_name: "Bob Smith", assignment_title: "CS101 Midterm", score: 45, max_score: 100, reason: "Flagged by integrity module" }] } });
       }
       if (url.includes("/grading/student/")) {
-        return Promise.resolve({
-          data: {
-            grades: [
-              {
-                submission_id: 1,
-                assignment_title: "Week 1 Quiz",
-                score: 90,
-                max_score: 100,
-                feedback: "Great work!",
-                flagged: false,
-                graded_at: new Date().toISOString(),
-              },
-            ],
-          },
-        });
+        return Promise.resolve({ data: { grades: [{ submission_id: 1, assignment_title: "Week 1 Quiz", score: 90, max_score: 100, feedback: "Great work!", flagged: false, graded_at: new Date().toISOString() }] } });
       }
       if (url.includes("/integrity/reports")) {
-        return Promise.resolve({
-          data: {
-            reports: [
-              {
-                student_id: "S102",
-                risk_score: 85,
-                risk_level: "high",
-                flags: [{ type: "paste", detail: "large text block pasted" }],
-              },
-            ],
-          },
-        });
+        return Promise.resolve({ data: { reports: [{ student_id: "S102", risk_score: 85, risk_level: "high", flags: [{type: "paste", detail: "large text block pasted"}] }] } });
       }
-
-      // Do not auto-resolve auth endpoints
-      if (url.includes("/auth/login")) {
-        return Promise.reject(error);
-      }
-
+      
       // Fallback empty data for lists, true for actions
       if (error.config.method === "get") return Promise.resolve({ data: [] });
       return Promise.resolve({ data: { success: true } });
@@ -142,23 +44,19 @@ api.interceptors.response.use(
 
 export async function loginUser(username: string, password: string) {
   try {
-    const res = await api.post("/auth/login", { username, password });
+    const res = await axios.post("/auth/login", { username, password });
     return res.data;
   } catch (error) {
     // Fallback for GitHub Pages demo where backend is unavailable
-    if (shouldUseGithubPagesDemoMock()) {
-      if (username === "admin" && password === "admin123")
-        return { id: 1, name: "Admin User", username: "admin", role: "admin" };
-      if (username === "teacher1" && password === "teach123")
-        return { id: 2, name: "Teacher One", username: "teacher1", role: "teacher" };
-      if (username === "student1" && password === "student123")
-        return { id: 3, name: "Student One", username: "student1", role: "student" };
+    if (typeof window !== "undefined" && window.location.hostname.includes("github.io")) {
+      if (username === "admin" && password === "admin123") return { id: 1, name: "Admin User", username: "admin", role: "admin" };
+      if (username === "teacher1" && password === "teach123") return { id: 2, name: "Teacher One", username: "teacher1", role: "teacher" };
+      if (username === "student1" && password === "student123") return { id: 3, name: "Student One", username: "student1", role: "student" };
       throw new Error("Invalid demo credentials");
     }
     throw error;
   }
 }
-
 // ── Types ──────────────────────────────────────────────────────────
 
 export interface GradingResult {
@@ -275,6 +173,7 @@ export const getIntegrityReports = async () => {
   return res.data.reports;
 };
 
+
 // ── RAG ───────────────────────────────────────────────────────────
 
 export const queryRAG = async (payload: {
@@ -282,7 +181,7 @@ export const queryRAG = async (payload: {
   course_id: number;
   top_k?: number;
   provider?: string;
-  fast_mode?: boolean;
+  fast_mode?: boolean;   // add this
 }) => {
   const res = await api.post("/rag/query", payload);
   return res.data;
@@ -293,6 +192,8 @@ export const getDocuments = async (course_id: number) => {
   return res.data.documents;
 };
 
+export default api;
+
 // ── RAG Upload ─────────────────────────────────────────────────────
 
 export const uploadDocument = async (
@@ -300,13 +201,16 @@ export const uploadDocument = async (
   course_id: number,
   onProgress?: (phase: string, pct: number) => void
 ): Promise<{ document_id: number; chunks_created: number; filename: string }> => {
+
   const formData = new FormData();
   formData.append("file", file);
   formData.append("course_id", String(course_id));
 
+  // simulate progress phases while upload + processing happens
+  // real progress would need SSE or websockets — this is good enough for demo
   onProgress?.("Uploading", 10);
 
-  const res = await axios.post(`${getApiBaseURL()}/rag/upload`, formData, {
+  const res = await axios.post("/rag/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
     onUploadProgress: (evt) => {
       if (evt.total) {
@@ -317,23 +221,20 @@ export const uploadDocument = async (
   });
 
   onProgress?.("Chunking", 60);
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise(r => setTimeout(r, 400));
   onProgress?.("Embedding", 80);
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise(r => setTimeout(r, 400));
   onProgress?.("Indexing", 95);
-  await new Promise((r) => setTimeout(r, 300));
+  await new Promise(r => setTimeout(r, 300));
   onProgress?.("Done", 100);
 
   return res.data;
 };
 
-export const getCourses = async (): Promise<
-  { id: number; name: string; subject: string; created_at: string }[]
-> => {
+export const getCourses = async (): Promise < { id: number; name: string; subject: string; created_at: string }[] >  => {
   const res = await api.get("/rag/courses");
   return res.data.courses;
 };
-
 // ── Knowledge Graph ────────────────────────────────────────────────
 
 export interface GraphNode {
@@ -381,7 +282,7 @@ export interface RouterStats {
   confidence_distribution: { high: number; medium: number; low: number };
   model_usage: { model_used: string; count: number }[];
   reviewed_by_prof: number;
-  cost_estimate: {
+  cost_estimate: {                    // was missing the ? before
     tier2_spent_inr: number;
     saved_by_tier1_inr: number;
     total_if_all_t2_inr: number;
@@ -392,9 +293,6 @@ export const getRouterStats = async (): Promise<RouterStats> => {
   const res = await api.get("/grading/stats");
   return res.data;
 };
-
-// ── Auth ───────────────────────────────────────────────────────────
-
 export interface AuthUser {
   id: number;
   name: string;
@@ -423,13 +321,10 @@ export function clearUser() {
 }
 
 const getBasePath = () => {
-  if (
-    typeof window !== "undefined" &&
-    window.location.pathname.startsWith("/UniversityTeachingAssistent")
-  ) {
-    return "/UniversityTeachingAssistent";
+  if (typeof window !== "undefined" && window.location.pathname.startsWith('/UniversityTeachingAssistent')) {
+    return '/UniversityTeachingAssistent';
   }
-  return "";
+  return '';
 };
 
 export function requireAuth(
@@ -440,12 +335,7 @@ export function requireAuth(
     if (typeof window !== "undefined") {
       window.location.href = `${getBasePath()}/login`;
     } else {
-      return {
-        id: 0,
-        name: "SSR",
-        username: "ssr",
-        role: allowedRoles?.[0] || "student",
-      } as AuthUser;
+      return { id: 0, name: "SSR", username: "ssr", role: allowedRoles?.[0] || "student" } as AuthUser;
     }
     throw new Error("Not authenticated");
   }
@@ -453,86 +343,66 @@ export function requireAuth(
     if (typeof window !== "undefined") {
       window.location.href = `${getBasePath()}/login`;
     } else {
-      return user;
+      return user; // Just pass through on SSR
     }
     throw new Error("Forbidden");
   }
   return user;
 }
 
-// ── Viva ───────────────────────────────────────────────────────────
-
+// Submit a single viva response for a given question index
 export async function submitVivaResponse(data: {
   viva_id: number;
   question_index: number;
   response: string;
-  original_answer?: string;
 }) {
-  const res = await api.post(`/integrity/viva/${data.viva_id}/respond`, {
+  const res = await axios.post(`/integrity/viva/${data.viva_id}/respond`, {
     question_index: data.question_index,
-    response_text: data.response,
-    original_answer: data.original_answer ?? "",
+    response: data.response,
   });
   return res.data;
 }
 
-// ── Admin / Users ──────────────────────────────────────────────────
-// NOTE: Previously these used bare `axios` (no base URL) — fixed to use `api`
-
 export async function createUser(data: {
-  name: string;
-  username: string;
-  password: string;
-  role: string;
+  name: string; username: string; password: string; role: string;
 }) {
-  const res = await api.post("/auth/users", data);
+  const res = await axios.post("/auth/users", data);
   return res.data;
 }
 
 export async function listUsers() {
-  const res = await api.get("/auth/users");
+  const res = await axios.get("/auth/users");
   return res.data;
 }
 
-// ── Courses & Assignments ──────────────────────────────────────────
-// NOTE: Previously these used bare `axios` (no base URL) — fixed to use `api`
-
 export async function createCourse(name: string, subject: string) {
-  const res = await api.post("/courses", { name, subject });
+  const res = await axios.post("/courses", { name, subject });
   return res.data;
 }
 
 export async function createAssignment(data: {
-  course_id: number;
-  title: string;
-  description: string;
-  type: string;
-  rubric: string;
-  max_marks: number;
+  course_id: number; title: string; description: string;
+  type: string; rubric: string; max_marks: number;
 }) {
-  const res = await api.post("/assignments", data);
+  const res = await axios.post("/assignments", data);
   return res.data;
 }
 
 export async function getAssignments(course_id?: number) {
-  const res = await api.get("/assignments", {
+  const res = await axios.get("/assignments", {
     params: course_id ? { course_id } : undefined,
   });
   return res.data;
 }
 
 export async function getStudentsStatus() {
-  const res = await api.get("/students/status");
+  const res = await axios.get("/students/status");
   return res.data;
 }
 
-// ── Scan Submit ────────────────────────────────────────────────────
-
 export async function submitScan(formData: FormData) {
-  const res = await axios.post(`${getApiBaseURL()}/grading/submit-scan`, formData, {
+  const res = await axios.post("/grading/submit-scan", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data;
 }
-
-export default api;

@@ -5,13 +5,6 @@ export interface AuthUser {
   role: "admin" | "teacher" | "student";
 }
 
-const getBasePath = () => {
-  if (typeof window !== "undefined" && window.location.pathname.startsWith('/UniversityTeachingAssistent')) {
-    return '/UniversityTeachingAssistent';
-  }
-  return '';
-};
-
 const KEY = "eduai_user";
 
 export function getUser(): AuthUser | null {
@@ -38,7 +31,7 @@ export function requireAuth(
   const user = getUser();
   if (!user) {
     if (typeof window !== "undefined") {
-      window.location.href = `${getBasePath()}/login`;
+      window.location.href = "/login";
     } else {
       return { id: 0, name: "SSR", username: "ssr", role: allowedRoles?.[0] || "student" } as AuthUser;
     }
@@ -46,7 +39,7 @@ export function requireAuth(
   }
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     if (typeof window !== "undefined") {
-      window.location.href = `${getBasePath()}/login`;
+      window.location.href = "/login";
     } else {
       return user; // Just pass through on SSR
     }
