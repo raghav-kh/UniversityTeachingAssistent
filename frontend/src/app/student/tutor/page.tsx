@@ -5,6 +5,7 @@ import { queryRAG, getCourses } from "@/lib/api";
 import { Send, Bot, User, BookOpen, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
 
 interface Message {
   role: "user" | "assistant";
@@ -125,22 +126,21 @@ export default function TutorPage() {
 
   // ── JSX ──────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-screen p-8 pb-4 max-w-3xl">
+    <PageShell className="flex h-[calc(100vh-2rem)] max-w-3xl flex-col pb-4">
 
       {/* Header */}
-      <div className="mb-4 flex items-start justify-between flex-shrink-0">
-        <div>
-          <h1 className="text-2xl font-bold text-white">AI Tutor</h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            RAG-grounded answers — only from uploaded course materials
-          </p>
-        </div>
+      <div className="mb-4 flex shrink-0 items-start justify-between">
+        <PageHeader
+          title="AI Tutor"
+          subtitle="RAG-grounded answers from uploaded materials"
+          badge="Student · Tutor"
+        />
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500">Course:</span>
+          <span className="text-xs text-muted-foreground">Course:</span>
           <select
             value={courseId}
             onChange={e => setCourseId(Number(e.target.value))}
-            className="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-3 py-1.5 outline-none cursor-pointer"
+            className="cursor-pointer rounded-lg border border-input bg-background/70 px-3 py-1.5 text-xs text-foreground outline-none"
           >
             {courses.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -150,13 +150,13 @@ export default function TutorPage() {
       </div>
 
       {/* RAG notice */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-violet-400/10 border border-violet-400/20 rounded-lg text-xs text-violet-400 mb-4 flex-shrink-0">
+      <div className="mb-4 flex shrink-0 items-center gap-2 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-xs text-violet-500">
         <BookOpen size={12} />
         Answers strictly grounded in uploaded PDFs — hallucination disabled
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
         {messages.map((msg, i) => (
           <div
             key={i}
@@ -178,11 +178,11 @@ export default function TutorPage() {
             }`}>
               <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 msg.role === "assistant"
-                  ? "bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-tl-sm"
-                  : "bg-emerald-500/10 border border-emerald-500/20 text-emerald-100 rounded-tr-sm"
+                  ? "rounded-tl-sm border border-border/70 bg-card text-foreground"
+                  : "rounded-tr-sm border border-emerald-500/30 bg-emerald-500/10 text-foreground"
               }`}>
                 {msg.loading ? (
-                  <div className="flex items-center gap-2 text-zinc-500">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <RefreshCw size={12} className="animate-spin" />
                     Searching course materials...
                   </div>
@@ -193,21 +193,21 @@ export default function TutorPage() {
 
               {msg.sources && msg.sources.length > 0 && (
                 <div className="space-y-1 w-full">
-                  <div className="text-[10px] text-zinc-600 px-1">Sources used:</div>
+                  <div className="px-1 text-[10px] text-muted-foreground">Sources used:</div>
                   {msg.sources.slice(0, 3).map((s, si) => (
                     <div
                       key={si}
-                      className="flex items-start gap-2 bg-zinc-900/80 border border-zinc-800 rounded-lg px-3 py-2"
+                      className="flex items-start gap-2 rounded-lg border border-border/70 bg-card/80 px-3 py-2"
                     >
-                      <BookOpen size={9} className="text-zinc-500 mt-0.5 flex-shrink-0" />
+                      <BookOpen size={9} className="mt-0.5 shrink-0 text-muted-foreground" />
                       <div className="min-w-0">
-                        <div className="text-[11px] text-zinc-400 font-medium truncate">
+                        <div className="truncate text-[11px] font-medium text-foreground">
                           {s.filename}
                         </div>
-                        <div className="text-[11px] text-zinc-600 mt-0.5 line-clamp-2">
+                        <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
                           {s.content}
                         </div>
-                        <div className="text-[10px] text-zinc-700 mt-0.5">
+                        <div className="mt-0.5 text-[10px] text-muted-foreground">
                           {Math.round(s.similarity * 100)}% match
                         </div>
                       </div>
@@ -228,7 +228,7 @@ export default function TutorPage() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask anything from your course materials..."
-          className="flex-1 bg-zinc-900 border-zinc-700 text-sm h-11"
+          className="h-11 flex-1 text-sm"
           disabled={loading}
         />
         <Button
@@ -240,9 +240,9 @@ export default function TutorPage() {
         </Button>
       </div>
 
-      <p className="text-center text-[11px] text-zinc-700 mt-2 flex-shrink-0">
+      <p className="mt-2 shrink-0 text-center text-[11px] text-muted-foreground">
         Press Enter to send · Shift+Enter for new line
       </p>
-    </div>
+    </PageShell>
   );
 }

@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { listUsers, createUser } from "@/lib/api";
 import { getUser } from "@/lib/auth";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface User {
   id: number;
@@ -48,65 +51,61 @@ export default function AdminUsersPage() {
   if (!ready) return null;
 
   const roleColors: Record<string, string> = {
-    admin: "bg-purple-900 text-purple-300",
-    teacher: "bg-blue-900 text-blue-300",
-    student: "bg-green-900 text-green-300",
+    admin: "bg-violet-500/10 text-violet-500",
+    teacher: "bg-sky-500/10 text-sky-500",
+    student: "bg-emerald-500/10 text-emerald-500",
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-white">User Management</h1>
+    <PageShell className="max-w-4xl">
+      <PageHeader title="User Management" subtitle="Create and manage platform users" badge="Admin · Users" />
 
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-lg font-semibold text-white mb-4">Create User</h2>
+      <SurfaceCard>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Create User</h2>
         <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
-          <input
+          <Input
             placeholder="Full name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
             required
           />
-          <input
+          <Input
             placeholder="Username"
             value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
-            className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
             required
           />
-          <input
+          <Input
             placeholder="Password"
             type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
             required
           />
           <select
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}
-            className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
+            className="h-10 rounded-lg border border-input bg-background/60 px-3 text-sm text-foreground"
           >
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
             <option value="admin">Admin</option>
           </select>
           <div className="col-span-2 flex items-center gap-4">
-            <button
+            <Button
               type="submit"
               disabled={creating}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50"
             >
               {creating ? "Creating…" : "Create User"}
-            </button>
-            {msg && <p className="text-sm text-gray-300">{msg}</p>}
+            </Button>
+            {msg && <p className="text-sm text-muted-foreground">{msg}</p>}
           </div>
         </form>
-      </div>
+      </SurfaceCard>
 
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <SurfaceCard className="overflow-hidden p-0">
         <table className="w-full text-sm">
-          <thead className="bg-gray-700 text-gray-300">
+          <thead className="bg-muted/70 text-muted-foreground">
             <tr>
               <th className="px-4 py-3 text-left">ID</th>
               <th className="px-4 py-3 text-left">Name</th>
@@ -116,10 +115,10 @@ export default function AdminUsersPage() {
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="border-t border-gray-700 text-white">
-                <td className="px-4 py-3 text-gray-400">{u.id}</td>
+              <tr key={u.id} className="border-t border-border/70 text-foreground">
+                <td className="px-4 py-3 text-muted-foreground">{u.id}</td>
                 <td className="px-4 py-3">{u.name}</td>
-                <td className="px-4 py-3 font-mono text-indigo-300">{u.username}</td>
+                <td className="px-4 py-3 font-mono text-primary">{u.username}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${roleColors[u.role]}`}>
                     {u.role}
@@ -129,7 +128,7 @@ export default function AdminUsersPage() {
             ))}
           </tbody>
         </table>
-      </div>
-    </div>
+      </SurfaceCard>
+    </PageShell>
   );
 }

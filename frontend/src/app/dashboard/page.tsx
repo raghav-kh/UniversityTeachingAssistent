@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import StatCard from "@/components/ui/StatCard";
-import { Badge } from "@/components/ui/badge";
 import { getReviewQueue, getIntegrityReports } from "@/lib/api";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
 
 export default function DashboardPage() {
-  const [queueCount, setQueueCount]   = useState(0);
+  const [queueCount, setQueueCount] = useState(0);
   const [highRiskCount, setHighRiskCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +18,9 @@ export default function DashboardPage() {
           getIntegrityReports(),
         ]);
         setQueueCount(queue.length);
-        setHighRiskCount(reports.filter((r: any) => r.risk_level === "high").length);
+        setHighRiskCount(
+          reports.filter((r: any) => r.risk_level === "high").length
+        );
       } catch (e) {
         console.error(e);
       } finally {
@@ -37,91 +39,117 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">System Overview</h1>
-        <p className="text-zinc-400 text-sm mt-1">
-          Real-time snapshot of your AI teaching ecosystem
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="System Overview"
+        subtitle="Real-time snapshot of your AI teaching ecosystem"
+        badge="Admin · Dashboard"
+      />
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          icon="📝" label="Submissions Graded"
-          value="1,247" delta="18% this week" deltaUp
+          icon="📝"
+          label="Submissions Graded"
+          value="1,247"
+          delta="18% this week"
+          deltaUp
           accent="emerald"
         />
         <StatCard
-          icon="⚠️" label="Review Queue"
-          value={loading ? "..." : queueCount}
-          delta="needs attention" deltaUp={false}
+          icon="⚠️"
+          label="Review Queue"
+          value={loading ? "…" : queueCount}
+          delta="needs attention"
+          deltaUp={false}
           accent="orange"
         />
         <StatCard
-          icon="🛡️" label="High Risk Flags"
-          value={loading ? "..." : highRiskCount}
-          delta="integrity alerts" deltaUp={false}
+          icon="🛡️"
+          label="High Risk Flags"
+          value={loading ? "…" : highRiskCount}
+          delta="integrity alerts"
+          deltaUp={false}
           accent="red"
         />
         <StatCard
-          icon="💰" label="API Cost Saved"
-          value="₹842" delta="68% via T1 + cache" deltaUp
+          icon="💰"
+          label="API Cost Saved"
+          value="₹842"
+          delta="68% via T1 + cache"
+          deltaUp
           accent="cyan"
         />
-      </div>
+      </section>
 
-      <div className="grid grid-cols-2 gap-6">
-        {/* Activity Feed */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-5">
+      <section className="grid gap-6 lg:grid-cols-2">
+        <SurfaceCard>
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-white">Live Activity</h2>
-              <p className="text-xs text-zinc-500 mt-0.5">Last 24 hours</p>
+              <h2 className="text-sm font-medium text-foreground">
+                Live Activity
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Last 24 hours
+              </p>
             </div>
-            <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-medium text-emerald-400">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
               Live
             </span>
           </div>
-
           <div className="space-y-4">
             {feed.map((item, i) => (
               <div key={i} className="flex gap-3">
-                <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${item.color}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-300 leading-relaxed">
+                <div
+                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.color}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm leading-relaxed text-foreground/90">
                     {item.text}
-                    <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded font-medium ${item.tagColor}`}>
+                    <span
+                      className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-medium ${item.tagColor}`}
+                    >
                       {item.tag}
                     </span>
                   </p>
-                  <p className="text-[11px] text-zinc-600 mt-0.5">{item.time}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    {item.time}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </SurfaceCard>
 
-        {/* Model Routing */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+        <SurfaceCard>
           <div className="mb-5">
-            <h2 className="font-semibold text-white">Model Routing Today</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">Smart cost distribution</p>
+            <h2 className="text-sm font-medium text-foreground">
+              Model Routing Today
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Smart cost distribution
+            </p>
           </div>
 
-          <div className="space-y-4 mb-6">
+          <div className="mb-6 space-y-4">
             {[
-              { label: "Tier-1 LLaMA 3.2 (Local)", pct: 78, color: "bg-emerald-400" },
-              { label: "Tier-2 GPT-4o / Gemini",   pct: 22, color: "bg-violet-400" },
+              {
+                label: "Tier-1 LLaMA 3.2 (Local)",
+                pct: 78,
+                color: "bg-emerald-400",
+              },
+              {
+                label: "Tier-2 GPT-4o / Gemini",
+                pct: 22,
+                color: "bg-violet-400",
+              },
             ].map((m) => (
               <div key={m.label}>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-zinc-400">{m.label}</span>
-                  <span className="text-zinc-300 font-medium">{m.pct}%</span>
+                <div className="mb-1.5 flex justify-between text-xs">
+                  <span className="text-muted-foreground">{m.label}</span>
+                  <span className="font-medium text-foreground">{m.pct}%</span>
                 </div>
-                <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                   <div
                     className={`h-full rounded-full ${m.color} transition-all duration-1000`}
                     style={{ width: `${m.pct}%` }}
@@ -133,17 +161,30 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-2 gap-3">
             {[
-              { val: "971", label: "T1 Requests (Free)", color: "text-emerald-400" },
-              { val: "276", label: "T2 Requests (Paid)", color: "text-violet-400" },
+              {
+                val: "971",
+                label: "T1 Requests (Free)",
+                color: "text-emerald-400",
+              },
+              {
+                val: "276",
+                label: "T2 Requests (Paid)",
+                color: "text-violet-400",
+              },
             ].map((s) => (
-              <div key={s.label} className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/50">
+              <div
+                key={s.label}
+                className="rounded-lg border border-border/60 bg-background/60 p-3"
+              >
                 <div className={`text-xl font-bold ${s.color}`}>{s.val}</div>
-                <div className="text-[11px] text-zinc-500 mt-0.5">{s.label}</div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">
+                  {s.label}
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    </div>
+        </SurfaceCard>
+      </section>
+    </PageShell>
   );
 }

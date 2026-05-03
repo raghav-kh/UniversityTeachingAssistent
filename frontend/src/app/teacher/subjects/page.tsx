@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { getCourses, createCourse } from "@/lib/api";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface Course { id: number; name: string; subject: string; created_at: string }
 
@@ -42,44 +45,49 @@ export default function TeacherSubjectsPage() {
   if (!ready) return null;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-white">Subjects</h1>
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-white font-semibold mb-4">Create New Subject</h2>
+    <PageShell className="max-w-3xl">
+      <PageHeader
+        title="Subjects"
+        subtitle="Manage course shells and subjects"
+        badge="Teacher · Subjects"
+      />
+      <SurfaceCard>
+        <h2 className="mb-4 text-base font-semibold text-foreground">Create New Subject</h2>
         <form onSubmit={handleCreate} className="flex gap-3">
-          <input
+          <Input
             placeholder="Course name (e.g. CS101)"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
+            className="flex-1"
             required
           />
-          <input
+          <Input
             placeholder="Subject (e.g. Data Structures)"
             value={form.subject}
             onChange={(e) => setForm({ ...form, subject: e.target.value })}
-            className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
+            className="flex-1"
             required
           />
-          <button type="submit" disabled={saving}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50">
+          <Button type="submit" disabled={saving}>
             {saving ? "Saving…" : "Create"}
-          </button>
+          </Button>
         </form>
-        {msg && <p className="text-sm text-gray-300 mt-2">{msg}</p>}
-      </div>
+        {msg && <p className="mt-2 text-sm text-muted-foreground">{msg}</p>}
+      </SurfaceCard>
       <div className="grid gap-3">
         {courses.map((c) => (
-          <div key={c.id} className="bg-gray-800 border border-gray-700 rounded-xl p-4 flex justify-between items-center">
+          <SurfaceCard key={c.id} className="p-4">
+            <div className="flex items-center justify-between">
             <div>
-              <p className="text-white font-semibold">{c.name}</p>
-              <p className="text-gray-400 text-sm">{c.subject}</p>
+              <p className="font-semibold text-foreground">{c.name}</p>
+              <p className="text-sm text-muted-foreground">{c.subject}</p>
             </div>
-            <span className="text-xs text-gray-500">ID: {c.id}</span>
-          </div>
+            <span className="text-xs text-muted-foreground">ID: {c.id}</span>
+            </div>
+          </SurfaceCard>
         ))}
-        {courses.length === 0 && <p className="text-gray-500 text-sm text-center py-6">No subjects yet</p>}
+        {courses.length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">No subjects yet</p>}
       </div>
-    </div>
+    </PageShell>
   );
 }

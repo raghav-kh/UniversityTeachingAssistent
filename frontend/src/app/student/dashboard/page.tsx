@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import axios from "axios";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
 
 interface Grade {
   submission_id: number;
@@ -47,43 +48,73 @@ export default function StudentDashboard() {
       : null;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">My Grades</h1>
-        <p className="text-gray-400 text-sm mt-1">Welcome, {userName}</p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="My Grades"
+        subtitle={`Welcome, ${userName}`}
+        badge="Student · Dashboard"
+      />
+
       {avg && (
-        <div className="bg-indigo-900/30 border border-indigo-700 rounded-xl p-4">
-          <p className="text-indigo-300 text-sm">Overall average</p>
-          <p className="text-3xl font-bold text-white">{avg}%</p>
-        </div>
+        <SurfaceCard className="border-indigo-500/40 bg-indigo-500/5">
+          <p className="text-sm text-indigo-200">
+            Overall average
+          </p>
+          <p className="text-3xl font-bold text-foreground">
+            {avg}%
+          </p>
+        </SurfaceCard>
       )}
+
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading grades…</p>
+        <p className="text-sm text-muted-foreground">
+          Loading grades…
+        </p>
       ) : grades.length === 0 ? (
-        <p className="text-gray-500 text-sm">
+        <p className="text-sm text-muted-foreground">
           No submissions yet.{" "}
-          <Link href="/student/exam" className="text-indigo-400 hover:underline">Take an exam →</Link>
+          <Link
+            href="/student/exam"
+            className="font-medium text-primary hover:underline"
+          >
+            Take an exam →
+          </Link>
         </p>
       ) : (
-        <div className="space-y-3">
+        <section className="space-y-3">
           {grades.map((g, i) => (
-            <div key={i} className="bg-gray-800 border border-gray-700 rounded-xl p-4 space-y-2">
-              <div className="flex justify-between items-start">
-                <p className="text-white font-medium">{g.assignment_title || `Submission #${g.submission_id}`}</p>
-                <span className={`text-sm font-bold ${g.score / g.max_score >= 0.5 ? "text-green-400" : "text-red-400"}`}>
+            <SurfaceCard key={i}>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-medium text-foreground">
+                  {g.assignment_title || `Submission #${g.submission_id}`}
+                </p>
+                <span
+                  className={`text-sm font-semibold ${
+                    g.score / g.max_score >= 0.5
+                      ? "text-emerald-400"
+                      : "text-red-400"
+                  }`}
+                >
                   {g.score}/{g.max_score}
                 </span>
               </div>
-              <p className="text-gray-400 text-sm">{g.feedback}</p>
-              <div className="flex gap-3 text-xs text-gray-500">
-                <span>{new Date(g.graded_at).toLocaleDateString()}</span>
-                {g.flagged && <span className="text-yellow-500">⚠ Flagged for review</span>}
+              <p className="mt-2 text-sm text-muted-foreground">
+                {g.feedback}
+              </p>
+              <div className="mt-2 flex gap-3 text-xs text-muted-foreground">
+                <span>
+                  {new Date(g.graded_at).toLocaleDateString()}
+                </span>
+                {g.flagged && (
+                  <span className="text-amber-400">
+                    ⚠ Flagged for review
+                  </span>
+                )}
               </div>
-            </div>
+            </SurfaceCard>
           ))}
-        </div>
+        </section>
       )}
-    </div>
+    </PageShell>
   );
 }

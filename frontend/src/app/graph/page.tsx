@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { getGraph, seedGraph, getPrerequisites, GraphNode, GraphEdge } from "@/lib/api";
 import { RefreshCw, GitBranch, Layers, Info, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
 
 const BLOOM_COLORS: Record<string, string> = {
   Remember:   "#4ade80",
@@ -168,59 +169,58 @@ export default function GraphPage() {
   const bloomLevels = [...new Set(nodes.map(n => n.bloom))];
 
   return (
-    <div className="p-8 max-w-6xl">
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Knowledge Graph</h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            Neo4j-powered topic dependency map — click any node to see prerequisites
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={loadGraph}
-            variant="outline"
-            className="border-zinc-700 text-zinc-400 hover:text-white"
-          >
-            <RefreshCw size={14} className={`mr-2 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-          <Button
-            onClick={handleSeed}
-            disabled={seeding}
-            className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
-          >
-            <Plus size={14} className="mr-2" />
-            {seeding ? "Seeding..." : "Seed Sample Graph"}
-          </Button>
-        </div>
-      </div>
+    <PageShell className="max-w-6xl">
+      <PageHeader
+        title="Knowledge Graph"
+        subtitle="Neo4j-powered topic dependency map"
+        badge="Tools · Graph"
+        actions={
+          <div className="flex gap-2">
+            <Button
+              onClick={loadGraph}
+              variant="outline"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw size={14} className={`mr-2 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button
+              onClick={handleSeed}
+              disabled={seeding}
+              className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
+            >
+              <Plus size={14} className="mr-2" />
+              {seeding ? "Seeding..." : "Seed Sample Graph"}
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-3 gap-6">
 
         {/* Graph canvas */}
-        <div className="col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <SurfaceCard className="col-span-2 overflow-hidden p-0">
 
           {/* Legend */}
-          <div className="flex items-center gap-4 px-4 py-3 border-b border-zinc-800 flex-wrap">
-            <span className="text-xs text-zinc-500">Bloom's Taxonomy:</span>
+          <div className="flex flex-wrap items-center gap-4 border-b border-border/70 px-4 py-3">
+            <span className="text-xs text-muted-foreground">Bloom's Taxonomy:</span>
             {Object.entries(BLOOM_COLORS).map(([level, color]) => (
               <div key={level} className="flex items-center gap-1.5">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
                   style={{ background: color }}
                 />
-                <span className="text-[11px] text-zinc-400">{level}</span>
+                <span className="text-[11px] text-muted-foreground">{level}</span>
               </div>
             ))}
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-80 text-zinc-500 gap-3">
+            <div className="flex h-80 items-center justify-center gap-3 text-muted-foreground">
               <RefreshCw size={16} className="animate-spin" /> Loading graph...
             </div>
           ) : nodes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-80 text-zinc-600 gap-3">
+            <div className="flex h-80 flex-col items-center justify-center gap-3 text-muted-foreground">
               <GitBranch size={32} />
               <div className="text-sm">No topics yet</div>
               <Button
@@ -241,14 +241,14 @@ export default function GraphPage() {
               style={{ background: "transparent" }}
             />
           )}
-        </div>
+        </SurfaceCard>
 
         {/* Side panel */}
         <div className="space-y-4">
 
           {/* Stats */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-xs text-zinc-500 uppercase tracking-wider mb-3">
+          <SurfaceCard className="p-4">
+            <div className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
               Graph Stats
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -260,26 +260,26 @@ export default function GraphPage() {
               ].map(s => (
                 <div
                   key={s.label}
-                  className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/30"
+                  className="rounded-lg border border-border/70 bg-muted/40 p-3"
                 >
                   <div className={`text-lg font-bold ${s.color}`}>{s.val}</div>
-                  <div className="text-[10px] text-zinc-600">{s.label}</div>
+                  <div className="text-[10px] text-muted-foreground">{s.label}</div>
                 </div>
               ))}
             </div>
-          </div>
+          </SurfaceCard>
 
           {/* Selected node info */}
           {selected ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <SurfaceCard className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <div
                   className="w-3 h-3 rounded-full"
                   style={{ background: BLOOM_COLORS[selected.bloom] ?? "#6b7280" }}
                 />
-                <div className="font-semibold text-white">{selected.label}</div>
+                <div className="font-semibold text-foreground">{selected.label}</div>
               </div>
-              <div className="text-xs text-zinc-500 mb-3">
+              <div className="mb-3 text-xs text-muted-foreground">
                 Bloom's Level:{" "}
                 <span style={{ color: BLOOM_COLORS[selected.bloom] }}>
                   {selected.bloom}
@@ -288,21 +288,21 @@ export default function GraphPage() {
 
               {prereqs.length > 0 ? (
                 <div>
-                  <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+                  <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
                     Must learn first:
                   </div>
                   <div className="space-y-1.5">
                     {prereqs.map((p, idx) => (
                       <div
                         key={p.id ?? `prereq-${idx}`}
-                        className="flex items-center gap-2 bg-zinc-800/50 rounded-lg px-3 py-2"
+                        className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2"
                       >
                         <div
                           className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ background: BLOOM_COLORS[p.bloom] ?? "#6b7280" }}
                         />
-                        <span className="text-xs text-zinc-300">{p.label}</span>
-                        <span className="ml-auto text-[10px] text-zinc-600">
+                        <span className="text-xs text-foreground">{p.label}</span>
+                        <span className="ml-auto text-[10px] text-muted-foreground">
                           {p.distance} step{p.distance > 1 ? "s" : ""}
                         </span>
                       </div>
@@ -310,36 +310,36 @@ export default function GraphPage() {
                   </div>
                 </div>
               ) : (
-                <div className="text-xs text-zinc-600 flex items-center gap-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Info size={11} />
                   No prerequisites — this is a foundational topic
                 </div>
               )}
-            </div>
+            </SurfaceCard>
           ) : (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
-              <Layers size={24} className="text-zinc-700 mx-auto mb-2" />
-              <div className="text-xs text-zinc-600">
+            <SurfaceCard className="p-4 text-center">
+              <Layers size={24} className="mx-auto mb-2 text-muted-foreground" />
+              <div className="text-xs text-muted-foreground">
                 Click any node to see its prerequisites
               </div>
-            </div>
+            </SurfaceCard>
           )}
 
           {/* Cypher query display */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+          <SurfaceCard className="p-4">
+            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
               Live Cypher Query
             </div>
-            <div className="bg-zinc-800 rounded-lg p-3 font-mono text-[11px] text-cyan-400 leading-relaxed whitespace-pre">
+            <div className="whitespace-pre rounded-lg bg-muted p-3 font-mono text-[11px] leading-relaxed text-cyan-500">
               {selected
                 ? `MATCH path = (p:Topic)\n-[:REQUIRED_FOR*1..]->\n(t:Topic {id: "${selected.id}"})\nRETURN DISTINCT p, length(path)`
                 : `MATCH (a:Topic)\n-[:REQUIRED_FOR]->(b:Topic)\nRETURN a, b`
               }
             </div>
-          </div>
+          </SurfaceCard>
 
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

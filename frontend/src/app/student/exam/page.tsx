@@ -11,6 +11,10 @@ import {
   submitVivaResponse,
 } from "@/lib/api";
 import { v4 as uuidv4 } from "uuid";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 interface Assignment {
   id: number; title: string; description: string;
@@ -202,18 +206,18 @@ export default function StudentExamPage() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-white">Take Exam</h1>
+    <PageShell className="max-w-3xl">
+      <PageHeader title="Take Exam" subtitle="Submit typed or handwritten responses" badge="Student · Exam" />
 
       {/* Assignment picker */}
       {phase === "exam" && (
         <>
-          <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 space-y-3">
-            <label className="text-sm text-gray-400">Select Assignment</label>
+          <SurfaceCard className="space-y-3">
+            <label className="text-sm text-muted-foreground">Select Assignment</label>
             <select
               value={selectedId ?? ""}
               onChange={(e) => setSelectedId(Number(e.target.value) || null)}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm"
+              className="h-10 w-full rounded-lg border border-input bg-background/70 px-3 text-sm text-foreground"
             >
               <option value="">Choose…</option>
               {assignments.map((a) => (
@@ -224,11 +228,11 @@ export default function StudentExamPage() {
             </select>
 
             {selectedAssignment && (
-              <div className="bg-gray-700 rounded-lg p-3 text-sm text-gray-200 whitespace-pre-wrap">
+              <div className="whitespace-pre-wrap rounded-lg bg-muted p-3 text-sm text-foreground">
                 {selectedAssignment.description}
               </div>
             )}
-          </div>
+          </SurfaceCard>
 
           {selectedAssignment && (
             <>
@@ -237,7 +241,7 @@ export default function StudentExamPage() {
                 <button
                   onClick={() => setMode("text")}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mode === "text" ? "bg-indigo-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    mode === "text" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"
                   }`}
                 >
                   ✍️ Type Answer
@@ -245,7 +249,7 @@ export default function StudentExamPage() {
                 <button
                   onClick={() => setMode("scan")}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    mode === "scan" ? "bg-indigo-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    mode === "scan" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-accent"
                   }`}
                 >
                   📷 Upload Handwritten
@@ -253,29 +257,29 @@ export default function StudentExamPage() {
               </div>
 
               {mode === "text" ? (
-                <textarea
+                <Textarea
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                   rows={12}
                   placeholder="Write your answer here…"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
+                  className="resize-none rounded-xl px-4 py-3 text-sm"
                 />
               ) : (
                 <div className="space-y-3">
-                  <label className="block text-sm text-gray-400">
+                  <label className="block text-sm text-muted-foreground">
                     Upload a photo or scan of your handwritten answer
                   </label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="block text-sm text-gray-300 file:bg-indigo-600 file:text-white file:border-0 file:rounded-lg file:px-3 file:py-1.5 file:mr-3 file:cursor-pointer"
+                    className="block text-sm text-muted-foreground file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground"
                   />
                   {imagePreview && (
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="max-h-64 rounded-xl border border-gray-600 object-contain"
+                      className="max-h-64 rounded-xl border border-border object-contain"
                     />
                   )}
                 </div>
@@ -283,17 +287,17 @@ export default function StudentExamPage() {
 
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
-              <button
+              <Button
                 onClick={handleSubmit}
                 disabled={
                   submitting ||
                   (mode === "text" && !answer.trim()) ||
                   (mode === "scan" && !imageFile)
                 }
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium text-sm disabled:opacity-50 transition-colors"
+                className="h-11 w-full rounded-xl"
               >
                 {submitting ? "Submitting…" : "Submit Answer"}
-              </button>
+              </Button>
             </>
           )}
         </>
@@ -301,10 +305,10 @@ export default function StudentExamPage() {
 
       {/* Grade result */}
       {(phase === "graded" || phase === "viva_active" || phase === "done") && grade && (
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-3">
-          <h2 className="text-lg font-semibold text-white">Grade Result</h2>
+        <SurfaceCard className="space-y-3 p-6">
+          <h2 className="text-lg font-semibold text-foreground">Grade Result</h2>
           <div className="flex items-center gap-4">
-            <p className="text-3xl font-bold text-white">
+            <p className="text-3xl font-bold text-foreground">
               {grade.score}/{grade.max_score}
             </p>
             <p
@@ -320,12 +324,12 @@ export default function StudentExamPage() {
               </span>
             )}
           </div>
-          <p className="text-gray-300 text-sm">{grade.feedback}</p>
+          <p className="text-sm text-muted-foreground">{grade.feedback}</p>
 
           {ocrText && (
-            <details className="text-xs text-gray-500 mt-2">
-              <summary className="cursor-pointer text-gray-400">View OCR extracted text</summary>
-              <pre className="mt-2 bg-gray-900 rounded p-3 whitespace-pre-wrap">{ocrText}</pre>
+            <details className="mt-2 text-xs text-muted-foreground">
+              <summary className="cursor-pointer text-muted-foreground">View OCR extracted text</summary>
+              <pre className="mt-2 whitespace-pre-wrap rounded bg-muted p-3">{ocrText}</pre>
             </details>
           )}
 
@@ -337,7 +341,7 @@ export default function StudentExamPage() {
                 ? "bg-yellow-900/20 border-yellow-700"
                 : "bg-green-900/20 border-green-700"
             }`}>
-              <p className="text-sm font-semibold text-gray-200">
+              <p className="text-sm font-semibold text-foreground">
                 Integrity:{" "}
                 <span className={riskColor[integrity.risk_level]}>
                   {integrity.risk_level}
@@ -345,23 +349,23 @@ export default function StudentExamPage() {
                 (score: {integrity.risk_score.toFixed(2)})
               </p>
               {integrity.flags?.length > 0 && (
-                <ul className="mt-1 text-xs text-gray-400 list-disc list-inside">
+                <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
                   {integrity.flags.map((f, i) => <li key={i}>{f.type}: {f.detail}</li>)}
                 </ul>
               )}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       {/* Inline Viva */}
       {phase === "viva_active" && vivaQuestions.length > 0 && (
-        <div className="bg-gray-800 border border-orange-700 rounded-xl p-6 space-y-4">
+        <SurfaceCard className="space-y-4 border-orange-500/40 p-6">
           <div className="flex items-center gap-2">
             <span className="text-orange-400 text-lg">🎤</span>
-            <h2 className="text-lg font-semibold text-white">Oral Verification Required</h2>
+            <h2 className="text-lg font-semibold text-foreground">Oral Verification Required</h2>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Your submission triggered an integrity check. Please answer the following
             questions to verify your understanding.
           </p>
@@ -369,49 +373,49 @@ export default function StudentExamPage() {
           <div className="space-y-2">
             {/* Answered questions */}
             {vivaResponses.map((resp, i) => (
-              <div key={i} className="bg-gray-700 rounded-lg p-3 space-y-1">
-                <p className="text-sm text-gray-300 font-medium">
+              <div key={i} className="space-y-1 rounded-lg bg-muted p-3">
+                <p className="text-sm font-medium text-foreground">
                   Q{i + 1}: {vivaQuestions[i]?.question}
                 </p>
-                <p className="text-sm text-indigo-300 italic">"{resp}"</p>
+                <p className="text-sm italic text-primary">"{resp}"</p>
               </div>
             ))}
 
             {/* Current question */}
             {vivaIdx < vivaQuestions.length && (
-              <div className="bg-gray-700 border border-orange-600 rounded-lg p-4 space-y-3">
-                <p className="text-sm text-white font-medium">
+              <div className="space-y-3 rounded-lg border border-orange-500/40 bg-muted p-4">
+                <p className="text-sm font-medium text-foreground">
                   Q{vivaIdx + 1} of {vivaQuestions.length}:{" "}
                   {vivaQuestions[vivaIdx].question}
                 </p>
-                <textarea
+                <Textarea
                   value={vivaInput}
                   onChange={(e) => setVivaInput(e.target.value)}
                   rows={3}
                   placeholder="Your response…"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-orange-500 resize-none"
+                  className="resize-none text-sm"
                 />
-                <button
+                <Button
                   onClick={handleVivaSubmit}
                   disabled={vivaSubmitting || !vivaInput.trim()}
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+                  className="bg-orange-500 text-white hover:bg-orange-600"
                 >
                   {vivaSubmitting ? "Submitting…" : vivaIdx + 1 < vivaQuestions.length ? "Next →" : "Finish Viva"}
-                </button>
+                </Button>
               </div>
             )}
           </div>
-        </div>
+        </SurfaceCard>
       )}
 
       {/* Done */}
       {phase === "done" && (
-        <div className="bg-green-900/20 border border-green-700 rounded-xl p-6 text-center space-y-3">
+        <SurfaceCard className="space-y-3 border-green-500/40 bg-green-500/10 p-6 text-center">
           <p className="text-green-400 text-xl font-semibold">✓ All done!</p>
-          <p className="text-gray-400 text-sm">
+          <p className="text-sm text-muted-foreground">
             Your submission and viva responses have been recorded.
           </p>
-          <button
+          <Button
             onClick={() => {
               setPhase("exam");
               setGrade(null);
@@ -426,12 +430,12 @@ export default function StudentExamPage() {
               setVivaIdx(0);
               sessionId.current = uuidv4();
             }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm"
+            className="mx-auto"
           >
             Take Another Exam
-          </button>
-        </div>
+          </Button>
+        </SurfaceCard>
       )}
-    </div>
+    </PageShell>
   );
 }

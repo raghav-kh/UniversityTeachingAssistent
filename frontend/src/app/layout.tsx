@@ -4,6 +4,14 @@ import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "@/components/ui/Sidebar";
 import { getUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-geist-sans",
+});
 
 const PUBLIC_ROUTES = ["/login"];
 
@@ -46,15 +54,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
-      <body className="bg-gray-950 text-white" suppressHydrationWarning>
-        {/* Sidebar: fixed on the left, full height */}
-        <div className="fixed top-0 left-0 h-screen w-56 z-40">
-          <Sidebar />
+      <body
+        className={cn(
+          inter.variable,
+          "bg-background text-foreground antialiased font-sans",
+          "bg-gradient-to-br from-background via-background to-muted/50"
+        )}
+        suppressHydrationWarning
+      >
+        <div className="flex min-h-screen">
+          <aside className="sticky top-0 z-40 hidden h-screen w-64 border-r border-sidebar-border/80 bg-sidebar/90 backdrop-blur lg:block">
+            <Sidebar />
+          </aside>
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
         </div>
-        {/* Main content: offset by sidebar width */}
-        <main className="ml-56 min-h-screen overflow-auto">
-          {children}
-        </main>
       </body>
     </html>
   );

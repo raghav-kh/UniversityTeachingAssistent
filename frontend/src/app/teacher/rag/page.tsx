@@ -7,6 +7,7 @@ import {
   AlertCircle, BookOpen, Layers, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
 
 interface Document {
   id: number;
@@ -138,15 +139,14 @@ export default function RAGPage() {
   const totalChunks = documents.reduce((sum, d) => sum + (d.chunk_count ?? 0), 0);
 
   return (
-    <div className="p-8 max-w-5xl">
+    <PageShell className="max-w-5xl">
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">RAG Engine</h1>
-        <p className="text-zinc-400 text-sm mt-1">
-          Upload course materials — AI chunks, embeds, and indexes for grounded generation
-        </p>
-      </div>
+      <PageHeader
+        title="RAG Engine"
+        subtitle="Upload course materials for grounded generation"
+        badge="Teacher · RAG"
+      />
 
       <div className="grid grid-cols-2 gap-6">
 
@@ -154,15 +154,15 @@ export default function RAGPage() {
         <div className="space-y-4">
 
           {/* Course selector */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <label className="text-xs text-zinc-500 uppercase tracking-wider mb-3 block">
+          <SurfaceCard className="p-5">
+            <label className="mb-3 block text-xs uppercase tracking-wider text-muted-foreground">
               Target Course
             </label>
 
             {courses.length === 0 ? (
-              <div className="text-xs text-zinc-600 space-y-2">
+              <div className="space-y-2 text-xs text-muted-foreground">
                 <p>No courses found. Create one via Docker:</p>
-                <code className="block bg-zinc-800 p-2.5 rounded-lg text-zinc-400 text-[10px] leading-relaxed">
+                <code className="block rounded-lg bg-muted p-2.5 text-[10px] leading-relaxed text-muted-foreground">
                   docker exec -it eduai_postgres psql -U admin -d eduai -c
                   &quot;INSERT INTO courses (name, subject)
                   VALUES (&apos;DSA&apos;, &apos;CS&apos;);&quot;
@@ -170,7 +170,7 @@ export default function RAGPage() {
                 <Button
                   onClick={loadCourses}
                   variant="outline"
-                  className="w-full border-zinc-700 text-zinc-400 text-xs mt-1"
+                  className="mt-1 w-full text-xs"
                 >
                   <RefreshCw size={12} className="mr-2" /> Retry
                 </Button>
@@ -184,7 +184,7 @@ export default function RAGPage() {
                     className={`w-full text-left px-4 py-3 rounded-lg border text-sm transition-all ${
                       selectedCourse === c.id
                         ? "border-emerald-500/50 bg-emerald-400/5 text-emerald-400"
-                        : "border-zinc-700 bg-zinc-800/30 text-zinc-300 hover:border-zinc-600"
+                        : "border-border/70 bg-card text-foreground hover:border-primary/40"
                     }`}
                   >
                     <span className="font-medium">{c.name}</span>
@@ -193,7 +193,7 @@ export default function RAGPage() {
                 ))}
               </div>
             )}
-          </div>
+          </SurfaceCard>
 
           {/* Drop zone */}
           <div
@@ -204,7 +204,7 @@ export default function RAGPage() {
             className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all select-none ${
               dragOver
                 ? "border-emerald-400 bg-emerald-400/5 scale-[1.01]"
-                : "border-zinc-700 hover:border-zinc-500 bg-zinc-900 hover:bg-zinc-800/50"
+                : "border-border/70 bg-card hover:border-primary/40"
             }`}
           >
             <input
@@ -220,39 +220,39 @@ export default function RAGPage() {
             <Upload
               size={32}
               className={`mx-auto mb-3 transition-colors ${
-                dragOver ? "text-emerald-400" : "text-zinc-500"
+                dragOver ? "text-emerald-400" : "text-muted-foreground"
               }`}
             />
-            <div className="font-semibold text-white mb-1">
+            <div className="mb-1 font-semibold text-foreground">
               {dragOver ? "Drop to upload" : "Drop PDF here or click to browse"}
             </div>
-            <div className="text-xs text-zinc-500">
+            <div className="text-xs text-muted-foreground">
               Lecture notes, textbooks, slides — PDF only, max 100MB
             </div>
           </div>
 
           {/* Upload progress */}
           {upload.status === "uploading" && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <SurfaceCard className="p-5">
               <div className="flex justify-between text-sm mb-3">
-                <span className="text-zinc-300 font-medium">{upload.phase}</span>
+                <span className="font-medium text-foreground">{upload.phase}</span>
                 <span className="text-emerald-400 font-bold tabular-nums">
                   {upload.pct}%
                 </span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   className="h-full bg-emerald-400 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${upload.pct}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[10px] text-zinc-600 mt-2">
+              <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
                 <span>Upload</span>
                 <span>Chunk</span>
                 <span>Embed</span>
                 <span>Index</span>
               </div>
-            </div>
+            </SurfaceCard>
           )}
 
           {/* Success state */}
@@ -289,32 +289,32 @@ export default function RAGPage() {
         </div>
 
         {/* ── RIGHT: Indexed Documents ───────────────────────── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col">
+        <SurfaceCard className="flex flex-col p-5">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="font-semibold text-white">Indexed Materials</h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <h2 className="font-semibold text-foreground">Indexed Materials</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 pgvector store · course {selectedCourse}
               </p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-emerald-400">{totalChunks}</div>
-              <div className="text-[10px] text-zinc-500">total chunks</div>
+              <div className="text-[10px] text-muted-foreground">total chunks</div>
             </div>
           </div>
 
           {/* Document list */}
           <div className="flex-1 min-h-0">
             {docsLoading ? (
-              <div className="flex items-center justify-center h-32 text-zinc-600 gap-2">
+              <div className="flex h-32 items-center justify-center gap-2 text-muted-foreground">
                 <RefreshCw size={14} className="animate-spin" />
                 <span className="text-sm">Loading...</span>
               </div>
             ) : documents.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 text-center">
-                <BookOpen size={28} className="text-zinc-700 mb-3" />
-                <div className="text-zinc-600 text-sm">No documents yet</div>
-                <div className="text-zinc-700 text-xs mt-1">
+                <BookOpen size={28} className="mb-3 text-muted-foreground" />
+                <div className="text-sm text-muted-foreground">No documents yet</div>
+                <div className="mt-1 text-xs text-muted-foreground">
                   Upload a PDF to get started
                 </div>
               </div>
@@ -323,17 +323,17 @@ export default function RAGPage() {
                 {documents.map(doc => (
                   <div
                     key={doc.id}
-                    className="flex items-start gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30 hover:border-zinc-600 transition-all"
+                    className="flex items-start gap-3 rounded-lg border border-border/70 bg-muted/40 p-3 transition-all hover:border-primary/40"
                   >
                     <FileText
                       size={15}
-                      className="text-zinc-400 mt-0.5 flex-shrink-0"
+                      className="mt-0.5 shrink-0 text-muted-foreground"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-zinc-200 font-medium truncate">
+                      <div className="truncate text-sm font-medium text-foreground">
                         {doc.filename}
                       </div>
-                      <div className="text-[11px] text-zinc-500 mt-0.5">
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">
                         {doc.chunk_count ?? 0} chunks ·{" "}
                         {new Date(doc.created_at).toLocaleDateString("en-IN", {
                           day: "numeric", month: "short", year: "numeric"
@@ -350,7 +350,7 @@ export default function RAGPage() {
           </div>
 
           {/* DB info footer */}
-          <div className="mt-4 pt-4 border-t border-zinc-800 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border/70 pt-4">
             {[
               { label: "Vector Store",   val: "pgvector",  color: "text-cyan-400"    },
               { label: "Embedding Dims", val: "1536",      color: "text-violet-400"  },
@@ -359,16 +359,16 @@ export default function RAGPage() {
             ].map(s => (
               <div
                 key={s.label}
-                className="bg-zinc-800/50 rounded-lg p-2.5 border border-zinc-700/20"
+                className="rounded-lg border border-border/60 bg-muted/40 p-2.5"
               >
                 <div className={`text-xs font-semibold ${s.color}`}>{s.val}</div>
-                <div className="text-[10px] text-zinc-600 mt-0.5">{s.label}</div>
+                <div className="mt-0.5 text-[10px] text-muted-foreground">{s.label}</div>
               </div>
             ))}
           </div>
-        </div>
+        </SurfaceCard>
 
       </div>
-    </div>
+    </PageShell>
   );
 }

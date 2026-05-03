@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, Edit, AlertTriangle, RefreshCw } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { PageShell, PageHeader, SurfaceCard } from "@/components/ui/PagePrimitives";
 
 export default function ReviewPage() {
   const [queue, setQueue]       = useState<ReviewQueueItem[]>([]);
@@ -59,34 +60,43 @@ export default function ReviewPage() {
     ? "text-red-400 bg-red-400/10 border-red-400/20"
     : "text-amber-400 bg-amber-400/10 border-amber-400/20";
 
-  if (loading) return (
-    <div className="p-8 flex items-center gap-3 text-zinc-500">
-      <RefreshCw size={16} className="animate-spin" /> Loading review queue...
-    </div>
-  );
+  if (loading) {
+    return (
+      <PageShell className="max-w-3xl">
+        <PageHeader
+          title="Review Queue"
+          subtitle="AI-flagged submissions needing professor review"
+          badge="Teacher · Review"
+        />
+        <SurfaceCard className="flex items-center gap-3 text-muted-foreground">
+          <RefreshCw size={16} className="animate-spin" />
+          Loading review queue...
+        </SurfaceCard>
+      </PageShell>
+    );
+  }
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Review Queue</h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            AI-flagged submissions needing professor review
-          </p>
-        </div>
+    <PageShell className="max-w-3xl">
+      <PageHeader title="Review Queue" subtitle="AI-flagged submissions needing professor review" badge="Teacher · Review" actions={
         <div className="text-right">
-          <div className="text-2xl font-bold text-white">{remaining}</div>
-          <div className="text-xs text-zinc-500">remaining</div>
+          <div className="text-2xl font-bold text-foreground">{remaining}</div>
+          <div className="text-xs text-muted-foreground">remaining</div>
+        </div>
+      } />
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          
         </div>
       </div>
 
       {/* Progress bar */}
       <div className="mb-6">
-        <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
+        <div className="mb-1.5 flex justify-between text-xs text-muted-foreground">
           <span>{done} reviewed today</span>
           <span>{queue.length} total</span>
         </div>
-        <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full bg-emerald-400 rounded-full transition-all duration-500"
             style={{ width: `${queue.length ? (index / queue.length) * 100 : 0}%` }}
@@ -96,27 +106,27 @@ export default function ReviewPage() {
 
       {/* Empty state */}
       {remaining === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
+        <SurfaceCard className="p-12 text-center">
           <div className="text-4xl mb-3">🎉</div>
-          <div className="text-white font-semibold">Queue cleared!</div>
-          <div className="text-zinc-500 text-sm mt-1">All submissions reviewed</div>
+          <div className="font-semibold text-foreground">Queue cleared!</div>
+          <div className="mt-1 text-sm text-muted-foreground">All submissions reviewed</div>
           <Button onClick={loadQueue} className="mt-4" variant="outline">
             Refresh Queue
           </Button>
-        </div>
+        </SurfaceCard>
       )}
 
       {/* Review Card */}
       {current && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <SurfaceCard className="overflow-hidden p-0">
           {/* Card header */}
-          <div className="p-5 border-b border-zinc-800 flex items-start justify-between">
+          <div className="flex items-start justify-between border-b border-border/70 p-5">
             <div>
-              <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+              <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
                 {current.assignment_type} · {current.assignment_title}
               </div>
-              <div className="font-semibold text-white">{current.student_name}</div>
-              <div className="text-xs text-zinc-500">{current.student_id}</div>
+              <div className="font-semibold text-foreground">{current.student_name}</div>
+              <div className="text-xs text-muted-foreground">{current.student_id}</div>
             </div>
             <span className={`text-xs px-2.5 py-1 rounded-full border font-medium ${priorityColor}`}>
               {current.priority}
@@ -124,41 +134,41 @@ export default function ReviewPage() {
           </div>
 
           {/* Student answer */}
-          <div className="p-5 border-b border-zinc-800">
-            <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+          <div className="border-b border-border/70 p-5">
+            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
               Student Answer
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed bg-zinc-800/50 p-4 rounded-lg border border-zinc-700/30 max-h-36 overflow-y-auto">
+            <p className="max-h-36 overflow-y-auto rounded-lg border border-border/70 bg-muted p-4 text-sm leading-relaxed text-foreground">
               {current.answer_text}
             </p>
           </div>
 
           {/* AI grade info */}
-          <div className="p-5 border-b border-zinc-800">
-            <div className="text-xs text-zinc-500 uppercase tracking-wider mb-3">
+          <div className="border-b border-border/70 p-5">
+            <div className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
               AI Assessment
             </div>
             <div className="grid grid-cols-3 gap-3 mb-3">
-              <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/30">
-                <div className="text-xl font-bold text-white">
+              <div className="rounded-lg border border-border/70 bg-muted p-3">
+                <div className="text-xl font-bold text-foreground">
                   {current.score}/{current.max_score}
                 </div>
-                <div className="text-[11px] text-zinc-500">AI Score</div>
+                <div className="text-[11px] text-muted-foreground">AI Score</div>
               </div>
-              <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/30">
+              <div className="rounded-lg border border-border/70 bg-muted p-3">
                 <div className={`text-xl font-bold ${
                   confidencePct >= 85 ? "text-emerald-400" :
                   confidencePct >= 65 ? "text-amber-400" : "text-red-400"
                 }`}>
                   {confidencePct}%
                 </div>
-                <div className="text-[11px] text-zinc-500">Confidence</div>
+                <div className="text-[11px] text-muted-foreground">Confidence</div>
               </div>
-              <div className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700/30">
+              <div className="rounded-lg border border-border/70 bg-muted p-3">
                 <div className="text-xl font-bold text-violet-400 truncate text-sm pt-1">
                   {current.model_used}
                 </div>
-                <div className="text-[11px] text-zinc-500">Model</div>
+                <div className="text-[11px] text-muted-foreground">Model</div>
               </div>
             </div>
 
@@ -167,20 +177,20 @@ export default function ReviewPage() {
               <p className="text-xs text-amber-300">{current.reason}</p>
             </div>
 
-            <p className="text-sm text-zinc-400 mt-3 leading-relaxed">
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               {current.feedback}
             </p>
           </div>
 
           {/* Edit mode */}
           {editMode && (
-            <div className="p-5 border-b border-zinc-800 bg-zinc-800/30 space-y-3">
-              <div className="text-xs text-zinc-400 uppercase tracking-wider">
+            <div className="space-y-3 border-b border-border/70 bg-muted/60 p-5">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
                 Override Grade
               </div>
               <div className="flex gap-3">
                 <div className="w-32">
-                  <label className="text-xs text-zinc-500 mb-1 block">
+                  <label className="mb-1 block text-xs text-muted-foreground">
                     New Score (/{current.max_score})
                   </label>
                   <Input
@@ -188,19 +198,19 @@ export default function ReviewPage() {
                     value={newScore}
                     onChange={e => setNewScore(e.target.value)}
                     placeholder={String(current.score)}
-                    className="bg-zinc-800 border-zinc-700 text-sm"
+                    className="text-sm"
                     min={0} max={current.max_score}
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs text-zinc-500 mb-1 block">
+                  <label className="mb-1 block text-xs text-muted-foreground">
                     Your Feedback
                   </label>
                   <Input
                     value={profFeedback}
                     onChange={e => setProfFeedback(e.target.value)}
                     placeholder="Add professor feedback..."
-                    className="bg-zinc-800 border-zinc-700 text-sm"
+                    className="text-sm"
                   />
                 </div>
               </div>
@@ -229,14 +239,14 @@ export default function ReviewPage() {
               <Button
                 onClick={() => act("override")}
                 disabled={acting || !newScore}
-                className="bg-violet-500 hover:bg-violet-600 text-white font-semibold"
+                    className="bg-violet-500 text-white hover:bg-violet-600"
               >
                 Save Override
               </Button>
             )}
           </div>
-        </div>
+        </SurfaceCard>
       )}
-    </div>
+    </PageShell>
   );
 }
