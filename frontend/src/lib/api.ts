@@ -18,7 +18,7 @@ export function getApiBaseURL(): string {
 function shouldUseGithubPagesDemoMock(): boolean {
   if (typeof window === "undefined") return false;
   if (!window.location.hostname.includes("github.io")) return false;
-  return false; // We now have a real backend — disable mock
+  return true; // Enable demo mock on GitHub Pages (Vercel backend may reject demo credentials)
 }
 
 const api = axios.create({
