@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   output: isGithubActions ? 'export' : undefined,
   basePath: isGithubActions ? '/UniversityTeachingAssistent' : '',
-  assetPrefix: isGithubActions ? '/UniversityTeachingAssistent/' : '',
   images: {
     unoptimized: isGithubActions,
   },
