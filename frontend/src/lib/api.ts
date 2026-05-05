@@ -126,6 +126,43 @@ api.interceptors.response.use(
           },
         });
       }
+      if (url.includes("/graph/topics")) {
+        return Promise.resolve({
+          data: {
+            nodes: [
+              { id: "arrays",      label: "Arrays",      bloom: "Remember"   },
+              { id: "loops",       label: "Loops",       bloom: "Understand" },
+              { id: "functions",   label: "Functions",   bloom: "Apply"      },
+              { id: "recursion",   label: "Recursion",   bloom: "Analyze"    },
+              { id: "sorting",     label: "Sorting",     bloom: "Apply"      },
+              { id: "trees",       label: "Trees",       bloom: "Analyze"    },
+              { id: "graphs",      label: "Graphs",      bloom: "Evaluate"   },
+              { id: "dp",          label: "Dynamic Prog",bloom: "Create"     },
+            ],
+            edges: [
+              { source: "arrays",    target: "loops"      },
+              { source: "loops",     target: "functions"  },
+              { source: "functions", target: "recursion"  },
+              { source: "arrays",    target: "sorting"    },
+              { source: "recursion", target: "trees"      },
+              { source: "trees",     target: "graphs"     },
+              { source: "recursion", target: "dp"         },
+            ],
+          },
+        });
+      }
+      if (url.includes("/graph/prerequisites/")) {
+        const topicId = url.split("/graph/prerequisites/")[1];
+        const prereqMap: Record<string, { id: string; label: string; bloom: string; distance: number }[]> = {
+          recursion:  [{ id: "functions", label: "Functions", bloom: "Apply",     distance: 1 }, { id: "loops", label: "Loops", bloom: "Understand", distance: 2 }],
+          trees:      [{ id: "recursion", label: "Recursion", bloom: "Analyze",   distance: 1 }],
+          graphs:     [{ id: "trees",     label: "Trees",     bloom: "Analyze",   distance: 1 }],
+          dp:         [{ id: "recursion", label: "Recursion", bloom: "Analyze",   distance: 1 }],
+          sorting:    [{ id: "arrays",    label: "Arrays",    bloom: "Remember",  distance: 1 }],
+          functions:  [{ id: "loops",     label: "Loops",     bloom: "Understand",distance: 1 }],
+        };
+        return Promise.resolve({ data: { prerequisites: prereqMap[topicId] ?? [] } });
+      }
 
       // Do not auto-resolve auth endpoints
       if (url.includes("/auth/login")) {

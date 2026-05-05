@@ -31,7 +31,12 @@ export default function GraphPage() {
   async function loadGraph() {
     setLoading(true);
     try {
-      const data = await getGraph();
+      const raw = await getGraph();
+      // Guard: if backend returns unexpected shape (e.g. array), fall back safely
+      const data = {
+        nodes: Array.isArray(raw?.nodes) ? raw.nodes : [],
+        edges: Array.isArray(raw?.edges) ? raw.edges : [],
+      };
       setNodes(data.nodes);
       setEdges(data.edges);
       nodesRef.current = data.nodes;

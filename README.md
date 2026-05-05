@@ -4,12 +4,12 @@
 ## Tech Stack
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 14 + TypeScript + Tailwind + shadcn/ui |
+| Frontend | Next.js 16 + TypeScript + Tailwind + shadcn/ui |
 | Backend | Python + FastAPI + LangChain |
 | Primary DB | PostgreSQL 16 + pgvector |
 | Graph DB | Neo4j 5 |
 | Cache | Redis 7 |
-| Local AI | Ollama + LLaMA 3.2 3B |
+| Local AI | Grok (cloud) |
 | Cloud AI | GPT-4o / Gemini 1.5 Pro |
 
 ## Features
@@ -45,8 +45,8 @@ cd frontend
 npm install
 npm run dev
 
-### Pull AI Model
-ollama pull llama3.2:3b
+### AI Model Configuration
+Ensure `GROK_MODEL` (e.g., `grok-beta`) is set in `.env` and provide `XAI_API_KEY`.
 
 ## API Docs
 http://localhost:8000/docs
